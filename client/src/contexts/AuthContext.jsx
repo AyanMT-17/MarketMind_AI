@@ -47,7 +47,7 @@ export function AuthProvider({ children }) {
 
       return { success: true, message: "Login successful" }
     } catch (error) {
-      return { success: false, error: "Login failed" }
+      return { success: false, error}
     }
   }
 
