@@ -32,6 +32,10 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.get('/', (req, res) => {
+  res.send('Welcome to MarketMind AI Server');
+});
+
 // Authentication Routes
 app.post('/api/auth/register', async (req, res) => {
   try {
