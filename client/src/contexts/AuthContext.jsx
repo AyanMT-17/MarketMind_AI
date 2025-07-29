@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     try {
       // Simulate API call
-      const response = await fetch(`import.meta.env.${VITE_API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -54,7 +54,7 @@ export function AuthProvider({ children }) {
   const register = async (firstName, lastName, email, password, company) => {
     try {
       // API call to backend register endpoint
-      const response = await fetch(`import.meta.env.${VITE_API_BASE_URL}/api/auth/register`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, company }),

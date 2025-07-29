@@ -36,7 +36,7 @@ function CampaignBuilder() {
     setGenerating(true)
     try {
       const brandSettings = {} // optionally get from user profile or form
-      const response = await fetch("/api/ai/generate", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/ai/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json", 
           Authorization: `Bearer ${authToken}` },

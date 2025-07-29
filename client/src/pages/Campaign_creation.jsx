@@ -95,7 +95,7 @@ function CampaignCreation() {
         userId: authToken ? JSON.parse(atob(authToken.split('.')[1])).userId : null,
       }
 
-      const response = await fetch("/api/campaigns", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/campaigns`, {
         method: "POST",
         headers: { "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`
