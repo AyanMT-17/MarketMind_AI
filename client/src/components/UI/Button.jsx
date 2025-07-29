@@ -12,9 +12,9 @@ function Button({
 
 const variants = {
     primary:
-      "bg-gradient-to-r from-indigo-600 to-cyan-600 text-white hover:from-indigo-700 hover:to-cyan-700 focus:ring-indigo-500",
-    secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-indigo-500",
-    outline: "border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-indigo-500",
+      "bg-gradient-to-r from-green-600 to-teal-600 text-white hover:from-green-700 hover:to-teal-700 focus:ring-green-500",
+    secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-green-500",
+    outline: "border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-green-500",
     danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
   }
 

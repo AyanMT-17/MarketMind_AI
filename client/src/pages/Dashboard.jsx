@@ -57,7 +57,7 @@ function Dashboard() {
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <div className="flex space-x-3">
           <Link to="/campaign-builder">
-            <Button>Create Campaign</Button>
+            <Button>AI Content Generation</Button>
           </Link>
           <Link to="/forecasting">
             <Button variant="outline">View Forecast</Button>
@@ -67,15 +67,15 @@ function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-        <Card className="text-center">
-          <div className="text-3xl font-bold text-purple-600">{stats.totalCampaigns}</div>
-          <div className="text-sm text-gray-600 mt-1">Total Campaigns</div>
-        </Card>
+          <Card className="text-center">
+            <div className="text-3xl font-bold text-green-600">{stats.totalCampaigns}</div>
+            <div className="text-sm text-gray-600 mt-1">Total Campaigns</div>
+          </Card>
 
-        <Card className="text-center">
-          <div className="text-3xl font-bold text-blue-600">{stats.activeCampaigns}</div>
-          <div className="text-sm text-gray-600 mt-1">Active Campaigns</div>
-        </Card>
+          <Card className="text-center">
+            <div className="text-3xl font-bold text-teal-600">{stats.activeCampaigns}</div>
+            <div className="text-sm text-gray-600 mt-1">Active Campaigns</div>
+          </Card>
 
         <Card className="text-center">
           <div className="text-3xl font-bold text-green-600">{stats.totalReach.toLocaleString()}</div>
@@ -103,8 +103,8 @@ function Dashboard() {
                 <div
                   className={`
                   w-2 h-2 rounded-full
-                  ${activity.type === "campaign" ? "bg-purple-500" : ""}
-                  ${activity.type === "ai" ? "bg-blue-500" : ""}
+                  ${activity.type === "campaign" ? "bg-green-500" : ""}
+                  ${activity.type === "ai" ? "bg-teal-500" : ""}
                   ${activity.type === "forecast" ? "bg-green-500" : ""}
                   ${activity.type === "report" ? "bg-orange-500" : ""}
                 `}

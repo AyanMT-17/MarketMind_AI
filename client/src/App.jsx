@@ -10,6 +10,7 @@ import CampaignBuilder from "./pages/CampaignBuilder"
 import CampaignList from "./pages/CampaignList"
 import SalesForecasting from "./pages/SalesForecasting"
 import "./App.css"
+import CampaignCreation from "./pages/Campaign_creation"
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth()
@@ -90,6 +91,16 @@ function App() {
                   <ProtectedRoute>
                     <Layout>
                       <SalesForecasting />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/campaign_creation"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <CampaignCreation />
                     </Layout>
                   </ProtectedRoute>
                 }

@@ -84,11 +84,6 @@ const CampaignSchema = new mongoose.Schema({
     prompt: String,
     generatedAt: Date
   },
-  performance: {
-    sent: { type: Number, default: 0 },
-    opened: { type: Number, default: 0 },
-    clicked: { type: Number, default: 0 }
-  }
 }, { 
   timestamps: true 
 });

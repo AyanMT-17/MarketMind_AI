@@ -1,7 +1,7 @@
 "use client"
 import { Link, useLocation } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
-
+import { NavLink } from 'react-router-dom';
 function Sidebar({ isOpen, setIsOpen }) {
   const location = useLocation()
   const { logout } = useAuth()
@@ -9,8 +9,9 @@ function Sidebar({ isOpen, setIsOpen }) {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: "📊" },
     { name: "Campaigns", href: "/campaigns", icon: "📢" },
-    { name: "Campaign Builder", href: "/campaign-builder", icon: "🎨" },
+    { name: "AI Content Generation", href: "/campaign-builder", icon: "🎨" },
     { name: "Sales Forecasting", href: "/forecasting", icon: "📈" },
+    { name: "Campaign Builder", href: "/Campaign_creation", icon: "🎨" },
   ]
 
   const isActive = (href) => location.pathname === href
@@ -25,7 +26,7 @@ function Sidebar({ isOpen, setIsOpen }) {
       {/* Sidebar */}
       <div
         className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-indigo-900 to-cyan-900 
+        fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-green-900 to-teal-900 
         transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
       `}
@@ -44,8 +45,8 @@ function Sidebar({ isOpen, setIsOpen }) {
                   flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-200
                   ${
                     isActive(item.href)
-                      ? "bg-white bg-opacity-20 text-white"
-                      : "text-purple-100 hover:bg-white hover:bg-opacity-10 hover:text-white"
+                      ? "bg-green-700 text-white"
+                      : "text-green-100 hover:bg-white hover:bg-opacity-10 hover:text-white"
                   }
                 `}
                 onClick={() => setIsOpen(false)}
@@ -60,7 +61,7 @@ function Sidebar({ isOpen, setIsOpen }) {
         <div className="absolute bottom-4 left-4 right-4">
           <button
             onClick={logout}
-            className="w-full flex items-center px-4 py-3 text-sm font-medium text-purple-100 rounded-lg hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200"
+            className="w-full flex items-center px-4 py-3 text-sm font-medium text-green-100 rounded-lg hover:bg-white hover:bg-opacity-10 hover:text-white transition-colors duration-200"
           >
             <span className="mr-3 text-lg">🚪</span>
             Logout

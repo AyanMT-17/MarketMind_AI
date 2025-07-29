@@ -2,10 +2,13 @@ import jwt from 'jsonwebtoken';
 import Groq from 'groq-sdk';
 import { User } from './database.js';
 import dotenv from 'dotenv';
+import { connectDB, Campaign} from './database.js';
+
+//connect to the database
 
 // Initialize environment and Groq client
 dotenv.config();
-
+connectDB();
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });
@@ -181,6 +184,85 @@ export const aiService = {
     return available.length > 0 ? available : [MODEL_CONFIG.primary];
   },
 
+   // Content optimization with Groq
+  optimizeContent: async (originalContent, optimizationType) => {
+  if (!originalContent?.trim()) {
+    throw new Error('Original content is required for optimization');
+  }
+
+  const optimizationPrompts = {
+    engagement: 'maximize user engagement and click-through rates',
+    conversion: 'improve conversion rates and call-to-action effectiveness',
+    readability: 'enhance readability and comprehension',
+    professional: 'increase professionalism and credibility'
+  };
+
+  const objective = optimizationPrompts[optimizationType] || optimizationPrompts.engagement;
+
+  const systemPrompt = `You are a content optimization expert specializing in marketing copy. Your goal is to ${objective} while maintaining the core message and brand voice.`;
+
+  const userPrompt = `CONTENT OPTIMIZATION REQUEST:
+
+ORIGINAL CONTENT:
+${originalContent}
+
+OPTIMIZATION OBJECTIVE: ${objective}
+
+REQUIREMENTS:
+- Maintain the core message and intent
+- Enhance clarity and impact
+- Improve structure and flow
+- Make it more compelling and actionable
+- Preserve brand voice and tone
+
+Please provide the optimized version followed by a brief explanation of the key improvements made.`;
+
+  // List of models to try (primary first, then alternatives)
+  const modelsToTry = [MODEL_CONFIG.primary, MODEL_CONFIG.alternative];
+  const errors = [];
+
+  for (const model of modelsToTry) {
+    try {
+      console.log(`🔍 Attempting content optimization with model: ${model}`);
+      const completion = await retryApiCall(() =>
+        groq.chat.completions.create({
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          model: model,
+          max_tokens: 600,
+          temperature: 0.6,
+          top_p: 0.9,
+          frequency_penalty: 0.1
+        })
+      );
+
+      if (!completion || !completion.choices?.[0]?.message?.content) {
+        throw new Error('No optimized content generated from Groq API');
+      }
+      console.log(`✅ Content optimization successful with ${model}`);
+
+      return {
+        originalContent,
+        optimizedContent: completion.choices[0].message.content.trim(),
+        optimizationType,
+        objective,
+        model,
+        tokensUsed: completion.usage?.total_tokens || 0,
+        generatedAt: new Date(),
+        provider: 'groq'
+      };
+    } catch (modelError) {
+      console.warn(`❌ Model ${model} failed for optimization:`, modelError.message);
+      errors.push(`${model}: ${modelError.message}`);
+      // DO NOT throw here; continue to next model.
+    }
+  }
+  // If no model succeeded
+  throw new Error(`Content optimization failed in all models: ${errors.join(' | ')}`);
+},
+
   generateContent: async (prompt, contentType, brandSettings = {}) => {
     // Input validation
     if (!prompt?.trim()) {
@@ -229,23 +311,25 @@ Create compelling, brand-aligned content that resonates with the target audience
           if (!completion || !completion.choices?.[0]?.message?.content) {
             throw new Error('No content generated from Groq API');
           }
-
-          const content = completion.choices[0].message.content.trim();
+          console.log('AI Generation Result:', completion.choices[0].message.content.trim());
+          const content = await aiService.optimizeContent(completion.choices[0].message.content.trim(), 'engagement');
+          console.log('Optimized content for', content);
           console.log(`✅ Content generated successfully with ${modelToUse}`);
 
           return {
-            content: content,
-            model: modelToUse,
-            prompt: prompt,
-            contentType: contentType,
-            wordCount: content.split(/\s+/).length,
-            characterCount: content.length,
-            tokensUsed: completion.usage?.total_tokens || 0,
-            generatedAt: new Date(),
-            fallbackUsed: i > 0,
-            modelRank: i + 1,
-            provider: 'groq'
-          };
+          content: content.optimizedContent,
+          model: modelToUse,
+          prompt,
+          contentType,
+          wordCount: content.optimizedContent.split(/\s+/).        length,
+          characterCount: content.optimizedContent.length,
+          tokensUsed: completion.usage?.total_tokens || 0,
+          generatedAt: new Date(),
+          fallbackUsed: i > 0,
+          modelRank: i + 1,
+          provider: 'groq',
+          optimizationDetails: content // Optionally include all details
+        };
 
         } catch (modelError) {
           console.warn(`❌ Model ${modelsToTry[i]} failed:`, modelError.message);
@@ -335,9 +419,9 @@ Format your response with clear headings and bullet points for easy reading.`;
           }
 
           console.log(`✅ Sales forecast generated with ${model}`);
-
+          const formattedForecast = completion.choices[0].message.content.trim();
           return {
-            forecast: completion.choices[0].message.content.trim(),
+            forecast: formattedForecast,
             model: model,
             salesDataInput: salesData,
             businessContext: context,
@@ -358,6 +442,159 @@ Format your response with clear headings and bullet points for easy reading.`;
       throw new Error(`Sales forecast failed: ${error.message}`);
     }
   },
+
+  generateCampaign: async ({
+  name,
+  prompt,
+  type,
+  brandSettings = {},
+  userId
+}) => {
+  // 1. Input validation
+  if (!prompt?.trim()) {
+    return { success: false, errors: ['Prompt is required'], status: 400 };
+  }
+  if (!type || !['email', 'social', 'ad', 'blog'].includes(type)) {
+    return { success: false, errors: ['Valid campaign type required'], status: 400 };
+  }
+  if (!userId) {
+    return { success: false, errors: ['User ID required'], status: 400 };
+  }
+  // 2. Build campaign-gen prompt for LLM
+  const aiPrompt = `You are a senior marketing strategist and copywriter. 
+Draft a complete ${type} campaign for our business, based on the following idea:
+
+Prompt/Theme: ${prompt}
+
+Brand Guidelines:
+- Tone: ${brandSettings.tone || 'professional'}
+- Style: ${brandSettings.style || 'conversational'}
+- Target Audience: ${brandSettings.targetAudience || 'business professionals'}
+- Brand Guidelines: ${brandSettings.guidelines || 'Focus on clear, actionable, engaging copy'}
+
+Please generate:
+1. Subject line (if applicable)
+2. Main body content
+3. 2-3 alternative subject lines or hooks for testing
+4. Clear and actionable call-to-action
+
+Format:
+SUBJECT: ...
+BODY:
+...
+VARIATIONS:
+- ...
+CTA:
+...
+`;
+  // 3. Call Groq LLM
+  const modelsToTry = [MODEL_CONFIG.primary, MODEL_CONFIG.alternative, MODEL_CONFIG.fallback];
+  const errors = [];
+  let completion = null;
+  let modelUsed = null;
+
+  for (const model of modelsToTry) {
+    try {
+      completion = await retryApiCall(() =>
+        groq.chat.completions.create({
+          messages: [
+            { role: 'system', content: 'You are an expert AI marketing assistant.' },
+            { role: 'user', content: aiPrompt }
+          ],
+          model: model,
+          max_tokens: 800,
+          temperature: 0.7,
+          top_p: 0.9,
+          frequency_penalty: 0.1,
+          presence_penalty: 0.1
+        })
+      );
+      modelUsed = model;
+      if (!completion || !completion.choices?.[0]?.message?.content) {
+        throw new Error('No campaign content generated from Groq API');
+      }
+      break;
+    } catch (err) {
+      errors.push(`${model}: ${err.message}`);
+      completion = null;
+      // proceed to next model (no throw here)
+    }
+  }
+  if (!completion) {
+    return {
+      success: false,
+      message: 'AI failed to generate campaign',
+      errors,
+      status: 502
+    };
+  }
+
+  // 4. Parse LLM response into fields
+  const aiText = completion.choices[0].message.content.trim();
+  // Simple parsing: look for SUBJECT/BODY/VARIATIONS/CTA sections (improve as needed)
+  const subjectMatch = aiText.match(/SUBJECT:\s*(.+)/i);
+  const bodyMatch = aiText.match(/BODY:\s*([\s\S]+?)(VARIATIONS:|CTA:|$)/i);
+  const variationsMatch = aiText.match(/VARIATIONS:\s*([\s\S]+?)(CTA:|$)/i);
+  const ctaMatch = aiText.match(/CTA:\s*(.+)$/i);
+
+  const subject = subjectMatch ? subjectMatch[1].replace(/\n/g, '').trim() : '';
+  const body = bodyMatch ? bodyMatch[1].replace(/\n{2,}/g, '\n').trim() : aiText;
+  const variations =
+    variationsMatch
+      ? variationsMatch[1]
+          .split('\n')
+          .map((v) => v.replace(/^[-•*]\s*/, '').trim()) // Remove list dashes/bullets
+          .filter(Boolean)
+      : [];
+  const cta = ctaMatch ? ctaMatch[1].replace(/\n/g, '').trim() : '';
+
+  // 5. Assemble campaign object
+  const campaignData = {
+    userId: userId.toString(), // Convert ObjectId to string
+    name: String(subject || prompt.slice(0, 40) + '...'), // Ensure string conversion
+    type: String(type), // Convert to string
+    status: 'draft', // Already a string
+    content: {
+      subject: String(subject || ''), // Convert to string, fallback to empty string
+      body: String(body || ''), // Convert to string, fallback to empty string
+      variations: variations.map(v => String(v)), // Convert array elements to strings
+    },
+    aiMetadata: {
+      model: String(modelUsed || ''), // Convert to string
+      prompt: String(prompt || ''), // Convert to string
+      generatedAt: new Date().toISOString() // Convert Date to ISO string format
+    }
+};
+
+  // 6. Validate campaign data before DB save
+  const campaignErrors = validationService.validateCampaign(campaignData);
+  if (campaignErrors.length > 0) {
+    return { success: false, errors: campaignErrors, aiText, status: 422 };
+  }
+
+  // 7. Save to database
+  try {
+    const campaign = new Campaign(campaignData);
+    await campaign.save();
+
+    return {
+      success: true,
+      message: 'Campaign generated and created',
+      campaign,
+      modelUsed,
+      aiText, // For reference/debugging
+      status: 201
+    };
+  } catch (dbErr) {
+    return {
+      success: false,
+      message: 'Campaign generation succeeded but database save failed',
+      error: dbErr.message,
+      aiText,
+      status: 500
+    };
+  }
+},
 
   // Enhanced model testing for Groq
   testModels: async (prompt = "Create a brief test marketing email announcement") => {
@@ -466,70 +703,7 @@ Format your response with clear headings and bullet points for easy reading.`;
     return recommendations;
   },
 
-  // Content optimization with Groq
-  optimizeContent: async (originalContent, optimizationType = 'engagement') => {
-    if (!originalContent?.trim()) {
-      throw new Error('Original content is required for optimization');
-    }
-
-    const optimizationPrompts = {
-      engagement: 'maximize user engagement and click-through rates',
-      conversion: 'improve conversion rates and call-to-action effectiveness',
-      readability: 'enhance readability and comprehension',
-      professional: 'increase professionalism and credibility'
-    };
-
-    const objective = optimizationPrompts[optimizationType] || optimizationPrompts.engagement;
-
-    try {
-      const systemPrompt = `You are a content optimization expert specializing in marketing copy. Your goal is to ${objective} while maintaining the core message and brand voice.`;
-      
-      const userPrompt = `CONTENT OPTIMIZATION REQUEST:
-
-ORIGINAL CONTENT:
-${originalContent}
-
-OPTIMIZATION OBJECTIVE: ${objective}
-
-REQUIREMENTS:
-- Maintain the core message and intent
-- Enhance clarity and impact
-- Improve structure and flow
-- Make it more compelling and actionable
-- Preserve brand voice and tone
-
-Please provide the optimized version followed by a brief explanation of the key improvements made.`;
-
-      const completion = await retryApiCall(() =>
-        groq.chat.completions.create({
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-          ],
-          model: MODEL_CONFIG.primary,
-          max_tokens: 600,
-          temperature: 0.6,
-          top_p: 0.9,
-          frequency_penalty: 0.1
-        })
-      );
-
-      return {
-        originalContent,
-        optimizedContent: completion.choices[0].message.content.trim(),
-        optimizationType,
-        objective,
-        model: MODEL_CONFIG.primary,
-        tokensUsed: completion.usage?.total_tokens || 0,
-        generatedAt: new Date(),
-        provider: 'groq'
-      };
-      
-    } catch (error) {
-      console.error('Content optimization failed:', error);
-      throw new Error(`Content optimization failed: ${error.message}`);
-    }
-  },
+ 
 
   // Get current model health status
   getModelHealth: () => {
@@ -757,6 +931,8 @@ export const utilityService = {
     return text
       .toLowerCase()
       .trim()
+      .replace(/[\s_]+/g, '-') 
+      .replace('/n', '') 
       .replace(/[^\w\s-]/g, '')
       .replace(/[\s_-]+/g, '-')
       .replace(/^-+|-+$/g, '')

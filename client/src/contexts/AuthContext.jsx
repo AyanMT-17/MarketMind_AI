@@ -13,7 +13,7 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
@@ -37,45 +37,45 @@ export function AuthProvider({ children }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       })
+      const data = await response.json()
+      console.log("Login response:", data)
 
-      // Simulate successful login
-      const userData = {
-        id: 1,
-        name: "John Doe",
-        email: email,
-        company: "MarketMind AI",
-      }
-
-      localStorage.setItem("authToken", "sample-token")
-      localStorage.setItem("userData", JSON.stringify(userData))
-
+      localStorage.setItem("authToken", data.token)
+      localStorage.setItem("userData", JSON.stringify(data.user))
       setIsAuthenticated(true)
-      setUser(userData)
+      setUser(data.user)
 
-      return { success: true }
+      return { success: true, message: "Login successful" }
     } catch (error) {
       return { success: false, error: "Login failed" }
     }
   }
 
-  const register = async (name, email, password, company) => {
+  const register = async (firstName, lastName, email, password, company) => {
     try {
-      // Simulate API call
+      // API call to backend register endpoint
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, company }),
+        body: JSON.stringify({ firstName, lastName, email, password, company }),
       })
 
-      // Simulate successful registration
-      const userData = {
-        id: 1,
-        name: name,
-        email: email,
-        company: company,
+      if (!response.ok) {
+        const errorData = await response.json()
+        return { success: false, error: errorData.message || "Registration failed" }
       }
 
-      localStorage.setItem("authToken", "sample-token")
+      const data = await response.json()
+
+      const userData = {
+        id: data.user._id || 1,
+        firstName: data.user.profile.firstName || firstName,
+        lastName: data.user.profile.lastName || lastName,
+        email: data.user.email || email,
+        company: data.user.profile.company || company,
+      }
+
+      localStorage.setItem("authToken", data.token)
       localStorage.setItem("userData", JSON.stringify(userData))
 
       setIsAuthenticated(true)

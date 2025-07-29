@@ -6,22 +6,23 @@ import { authService, aiService, validationService } from './services.js';
 
 // Load environment variables
 dotenv.config();
-console.log('HF_TOKEN loaded:', process.env.HF_TOKEN ? 'Yes' : 'No');
 
 // Initialize Express
 const app = express();
 const PORT = process.env.PORT || 5000;
+
 
 // Connect to database
 connectDB();
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true
+  origin: ['http://localhost:5173'], // Vite default port + fallback
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json({ limit: '10mb' }));
-
 // Health Check
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -105,7 +106,7 @@ app.post('/api/auth/login', async (req, res) => {
 
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ success: false, message: 'Server error' });
+    res.status(500).json({ success: false, message: 'Server error',token });
   }
 });
 
@@ -139,11 +140,12 @@ app.put('/api/auth/profile', authService.authenticate, async (req, res) => {
 // AI Content Generation - This route exists but may not be working properly
 app.post('/api/ai/generate', authService.authenticate, async (req, res) => {
   try {
+    console.log('AI Generation Request:', req.body);
     const { prompt, contentType } = req.body;
     const brandSettings = req.user.brandSettings;
 
     const result = await aiService.generateContent(prompt, contentType, brandSettings);
-
+    console.log('AI Generation Result:', result);
     res.json({
       success: true,
       ...result
@@ -174,13 +176,14 @@ app.post('/api/campaigns', authService.authenticate, async (req, res) => {
       return res.status(400).json({ success: false, errors });
     }
 
-    const campaign = new Campaign(campaignData);
-    await campaign.save();
-
-    res.status(201).json({
+    // Create campaign
+    
+    const result = await aiService.generateCampaign(campaignData);
+    console.log('Campaign generation result:', result);
+    res.json({
       success: true,
-      message: 'Campaign created',
-      campaign
+      message: 'Campaign created successfully',
+      campaign: result
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Failed to create campaign' });
@@ -245,5 +248,4 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-  console.log('HF_TOKEN loaded:', process.env.HF_TOKEN ? 'Yes' : 'No');
 });

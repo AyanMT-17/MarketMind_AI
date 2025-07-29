@@ -7,24 +7,25 @@ import Button from "../components/UI/Button"
 import Input from "../components/UI/Input"
 
 function CampaignBuilder() {
+  const authToken = localStorage.getItem("authToken")
   const [campaignData, setCampaignData] = useState({
     name: "",
     target: "",
     budget: "",
     duration: "",
+    type: "", // added campaign type
   })
   const [aiPrompt, setAiPrompt] = useState("")
+  const [optimizationType, setoptimizationType] = useState("") // added content type for AI generation
   const [generatedContent, setGeneratedContent] = useState("")
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const { addToast } = useToast()
 
-  const handleInputChange = (e) => {
-    setCampaignData({
-      ...campaignData,
-      [e.target.name]: e.target.value,
-    })
-  }
+  // New states for campaign content subject and variations
+  const [contentSubject, setContentSubject] = useState("")
+  const [contentVariations, setContentVariations] = useState([""])
+
 
   const generateContent = async () => {
     if (!aiPrompt.trim()) {
@@ -34,120 +35,37 @@ function CampaignBuilder() {
 
     setGenerating(true)
     try {
-      // Simulate API call to AI content generation
+      const brandSettings = {} // optionally get from user profile or form
       const response = await fetch("/api/ai/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: aiPrompt }),
+        headers: { "Content-Type": "application/json", 
+          Authorization: `Bearer ${authToken}` },
+        credentials: "include",
+        body: JSON.stringify({ prompt: aiPrompt, contentType : optimizationType, brandSettings }),
       })
 
-      // Simulate AI response
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to generate content")
+      }
 
-      const mockContent = `🚀 Exciting ${campaignData.name || "Campaign"} Alert! 
-
-Transform your business with our innovative solutions designed specifically for ${campaignData.target || "your target audience"}. 
-
-✨ Key Benefits:
-• Increase efficiency by up to 40%
-• Reduce costs while maximizing ROI
-• 24/7 customer support included
-• Easy integration with existing systems
-
-💰 Special Offer: Get started with just $${campaignData.budget || "999"} and see results in ${campaignData.duration || "30 days"}!
-
-Don't miss out on this limited-time opportunity. Join thousands of satisfied customers who have already transformed their business.
-
-#Innovation #BusinessGrowth #Success`
-
-      setGeneratedContent(mockContent)
+      const data = await response.json()
+      setGeneratedContent(data.content)
       addToast("AI content generated successfully!", "success")
     } catch (error) {
-      addToast("Failed to generate content", "error")
+      addToast(error.message || "Failed to generate content", "error")
     } finally {
       setGenerating(false)
-    }
-  }
-
-  const saveCampaign = async () => {
-    if (!campaignData.name || !generatedContent) {
-      addToast("Please fill in campaign details and generate content", "warning")
-      return
-    }
-
-    setLoading(true)
-    try {
-      // Simulate API call to save campaign
-      const response = await fetch("/api/campaigns", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...campaignData,
-          content: generatedContent,
-          createdAt: new Date().toISOString(),
-        }),
-      })
-
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      addToast("Campaign saved successfully!", "success")
-
-      // Reset form
-      setCampaignData({ name: "", target: "", budget: "", duration: "" })
-      setAiPrompt("")
-      setGeneratedContent("")
-    } catch (error) {
-      addToast("Failed to save campaign", "error")
-    } finally {
-      setLoading(false)
     }
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Campaign Builder</h1>
+        <h1 className="text-3xl font-bold text-gray-900">AI Content Generation</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Campaign Details */}
-        <Card>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Campaign Details</h2>
-          <div className="space-y-4">
-            <Input
-              label="Campaign Name"
-              name="name"
-              value={campaignData.name}
-              onChange={handleInputChange}
-              placeholder="Enter campaign name"
-            />
-
-            <Input
-              label="Target Audience"
-              name="target"
-              value={campaignData.target}
-              onChange={handleInputChange}
-              placeholder="e.g., Small business owners, Tech enthusiasts"
-            />
-
-            <Input
-              label="Budget ($)"
-              name="budget"
-              type="number"
-              value={campaignData.budget}
-              onChange={handleInputChange}
-              placeholder="Enter budget amount"
-            />
-
-            <Input
-              label="Duration (days)"
-              name="duration"
-              type="number"
-              value={campaignData.duration}
-              onChange={handleInputChange}
-              placeholder="Campaign duration in days"
-            />
-          </div>
-        </Card>
 
         {/* AI Content Generation */}
         <Card>
@@ -162,6 +80,20 @@ Don't miss out on this limited-time opportunity. Join thousands of satisfied cus
                 className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
                 rows={4}
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Content Type</label>
+              <select
+                value={optimizationType}
+                onChange={(e) => setoptimizationType(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500"
+              >
+                <option value="email">Email</option>
+                <option value="social">Social</option>
+                <option value="ad">Ad</option>
+                <option value="blog">Blog</option>
+              </select>
             </div>
 
             <Button onClick={generateContent} loading={generating} className="w-full">
@@ -179,9 +111,6 @@ Don't miss out on this limited-time opportunity. Join thousands of satisfied cus
             <pre className="whitespace-pre-wrap text-sm text-gray-800">{generatedContent}</pre>
           </div>
           <div className="flex space-x-3">
-            <Button onClick={saveCampaign} loading={loading}>
-              Save Campaign
-            </Button>
             <Button variant="outline" onClick={() => setGeneratedContent("")}>
               Clear Content
             </Button>
