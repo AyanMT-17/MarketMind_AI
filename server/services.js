@@ -312,12 +312,12 @@ Create compelling, brand-aligned content that resonates with the target audience
             throw new Error('No content generated from Groq API');
           }
           console.log('AI Generation Result:', completion.choices[0].message.content.trim());
-          const content = await aiService.optimizeContent(completion.choices[0].message.content.trim(), 'engagement');
+          const content = completion.choices[0].message.content.trim();
           console.log('Optimized content for', content);
           console.log(`✅ Content generated successfully with ${modelToUse}`);
 
           return {
-          content: content.optimizedContent,
+          content: content,
           model: modelToUse,
           prompt,
           contentType,
@@ -328,7 +328,6 @@ Create compelling, brand-aligned content that resonates with the target audience
           fallbackUsed: i > 0,
           modelRank: i + 1,
           provider: 'groq',
-          optimizationDetails: content // Optionally include all details
         };
 
         } catch (modelError) {
