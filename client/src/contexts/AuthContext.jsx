@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is logged in (simulate checking localStorage/token)
+    // Check if user is logged in from localStorage
     const token = localStorage.getItem("authToken")
     const userData = localStorage.getItem("userData")
 
@@ -31,7 +31,6 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      // Simulate API call
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -47,7 +46,7 @@ export function AuthProvider({ children }) {
 
       return { success: true, message: "Login successful" }
     } catch (error) {
-      return { success: false, error}
+      return { success: false, error }
     }
   }
 

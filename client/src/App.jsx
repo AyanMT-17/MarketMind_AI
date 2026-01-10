@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard"
 import CampaignBuilder from "./pages/CampaignBuilder"
 import CampaignList from "./pages/CampaignList"
 import SalesForecasting from "./pages/SalesForecasting"
+import LeadManagement from "./pages/LeadManagement"
 import "./App.css"
 import CampaignCreation from "./pages/Campaign_creation"
 
@@ -101,6 +102,16 @@ function App() {
                   <ProtectedRoute>
                     <Layout>
                       <CampaignCreation />
+                    </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/leads"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <LeadManagement />
                     </Layout>
                   </ProtectedRoute>
                 }

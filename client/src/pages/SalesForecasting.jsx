@@ -31,50 +31,60 @@ function SalesForecasting() {
       return
     }
 
+    const authToken = localStorage.getItem("authToken")
+    if (!authToken) {
+      addToast("Please log in to generate forecasts", "error")
+      return
+    }
+
     setLoading(true)
     try {
-      // Simulate API call to AI forecasting service
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      const currentRev = Number.parseFloat(inputData.currentRevenue)
-      const budget = Number.parseFloat(inputData.marketingBudget)
-      const months = Number.parseInt(inputData.timeframe)
-
-      // Mock AI forecast calculation
-      const baseGrowth = 0.15 // 15% base growth
-      const budgetMultiplier = Math.min((budget / currentRev) * 0.1, 0.3) // Budget impact
-      const seasonalityMultiplier = inputData.seasonality === "high" ? 1.2 : inputData.seasonality === "low" ? 0.8 : 1
-
-      const projectedGrowth = (baseGrowth + budgetMultiplier) * seasonalityMultiplier
-      const projectedRevenue = currentRev * (1 + (projectedGrowth * months) / 12)
-
-      const mockForecast = {
-        projectedRevenue: Math.round(projectedRevenue),
-        growthRate: Math.round(projectedGrowth * 100 * 10) / 10,
-        confidence: 85,
-        factors: [
-          { name: "Market Trends", impact: "Positive", weight: 25 },
-          { name: "Marketing Budget", impact: "Positive", weight: 30 },
-          {
-            name: "Seasonality",
-            impact:
-              inputData.seasonality === "high" ? "Positive" : inputData.seasonality === "low" ? "Negative" : "Neutral",
-            weight: 20,
-          },
-          { name: "Competition", impact: "Neutral", weight: 15 },
-          { name: "Economic Conditions", impact: "Positive", weight: 10 },
-        ],
-        monthlyBreakdown: Array.from({ length: months }, (_, i) => ({
-          month: i + 1,
-          revenue: Math.round(currentRev * (1 + (projectedGrowth * (i + 1)) / months)),
-          growth: Math.round(((projectedGrowth * (i + 1)) / months) * 100 * 10) / 10,
-        })),
+      // Build sales data object for API
+      const salesData = {
+        currentMonthlyRevenue: Number.parseFloat(inputData.currentRevenue),
+        marketingBudget: Number.parseFloat(inputData.marketingBudget),
+        targetAudienceSize: inputData.targetAudience ? Number.parseInt(inputData.targetAudience) : null,
+        seasonality: inputData.seasonality,
+        forecastPeriodMonths: Number.parseInt(inputData.timeframe),
       }
 
-      setForecast(mockForecast)
-      addToast("Sales forecast generated successfully!", "success")
+      // Build context string for AI
+      const context = `Business with $${salesData.currentMonthlyRevenue.toLocaleString()} monthly revenue, 
+        $${salesData.marketingBudget.toLocaleString()} marketing budget, 
+        ${salesData.seasonality} seasonality period, 
+        forecasting for ${salesData.forecastPeriodMonths} months.
+        ${salesData.targetAudienceSize ? `Target audience size: ${salesData.targetAudienceSize.toLocaleString()}` : ''}`
+
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/forecast`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ salesData, context }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to generate forecast")
+      }
+
+      const data = await response.json()
+
+      // Set AI-generated forecast
+      setForecast({
+        aiGenerated: true,
+        forecastText: data.forecast,
+        model: data.model,
+        generatedAt: data.generatedAt,
+        tokensUsed: data.tokensUsed,
+        inputData: salesData,
+      })
+
+      addToast("AI sales forecast generated successfully!", "success")
     } catch (error) {
-      addToast("Failed to generate forecast", "error")
+      console.error("Forecast error:", error)
+      addToast(error.message || "Failed to generate forecast", "error")
     } finally {
       setLoading(false)
     }
@@ -157,39 +167,40 @@ function SalesForecasting() {
         {/* Forecast Results */}
         {forecast && (
           <Card>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Forecast Results</h2>
-            <div className="space-y-4">
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg">
-                <div className="text-center">
-                  <p className="text-sm text-gray-600">Projected Revenue</p>
-                  <p className="text-3xl font-bold text-purple-600">${forecast.projectedRevenue.toLocaleString()}</p>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {forecast.growthRate}% growth • {forecast.confidence}% confidence
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">AI Forecast Analysis</h2>
+              {forecast.model && (
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                  Powered by {forecast.model}
+                </span>
+              )}
+            </div>
+
+            <div className="bg-gradient-to-r from-green-50 to-teal-50 p-4 rounded-lg mb-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <p className="text-sm text-gray-600">Revenue</p>
+                  <p className="text-lg font-bold text-green-600">
+                    ${forecast.inputData?.currentMonthlyRevenue?.toLocaleString() || 'N/A'}
                   </p>
                 </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium text-gray-900 mb-2">Key Factors</h3>
-                <div className="space-y-2">
-                  {forecast.factors.map((factor, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">{factor.name}</span>
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`
-                          px-2 py-1 rounded text-xs font-medium
-                          ${factor.impact === "Positive" ? "bg-green-100 text-green-800" : ""}
-                          ${factor.impact === "Negative" ? "bg-red-100 text-red-800" : ""}
-                          ${factor.impact === "Neutral" ? "bg-gray-100 text-gray-800" : ""}
-                        `}
-                        >
-                          {factor.impact}
-                        </span>
-                        <span className="text-gray-500">{factor.weight}%</span>
-                      </div>
-                    </div>
-                  ))}
+                <div>
+                  <p className="text-sm text-gray-600">Budget</p>
+                  <p className="text-lg font-bold text-teal-600">
+                    ${forecast.inputData?.marketingBudget?.toLocaleString() || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Seasonality</p>
+                  <p className="text-lg font-bold text-blue-600 capitalize">
+                    {forecast.inputData?.seasonality || 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Period</p>
+                  <p className="text-lg font-bold text-purple-600">
+                    {forecast.inputData?.forecastPeriodMonths || 'N/A'} months
+                  </p>
                 </div>
               </div>
             </div>
@@ -197,39 +208,30 @@ function SalesForecasting() {
         )}
       </div>
 
-      {/* Monthly Breakdown */}
-      {forecast && (
+      {/* AI Generated Forecast Text */}
+      {forecast && forecast.forecastText && (
         <Card>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Monthly Breakdown</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Month
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Projected Revenue
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Growth Rate
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {forecast.monthlyBreakdown.map((month) => (
-                  <tr key={month.month}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      Month {month.month}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${month.revenue.toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{month.growth}%</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Detailed Analysis</h2>
+          <div className="prose prose-sm max-w-none">
+            <div className="bg-gray-50 p-6 rounded-lg whitespace-pre-wrap text-gray-800 leading-relaxed">
+              {forecast.forecastText}
+            </div>
+          </div>
+
+          {forecast.generatedAt && (
+            <div className="mt-4 text-xs text-gray-500 flex items-center justify-between">
+              <span>Generated: {new Date(forecast.generatedAt).toLocaleString()}</span>
+              {forecast.tokensUsed && <span>Tokens used: {forecast.tokensUsed}</span>}
+            </div>
+          )}
+
+          <div className="mt-4 flex space-x-3">
+            <Button variant="outline" onClick={() => setForecast(null)}>
+              Clear Forecast
+            </Button>
+            <Button variant="outline" onClick={() => navigator.clipboard.writeText(forecast.forecastText)}>
+              Copy to Clipboard
+            </Button>
           </div>
         </Card>
       )}

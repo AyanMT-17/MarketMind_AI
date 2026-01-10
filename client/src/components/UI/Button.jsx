@@ -8,20 +8,26 @@ function Button({
   ...props
 }) {
   const baseClasses =
-    "inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+    "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2"
 
-const variants = {
+  const variants = {
     primary:
-      "bg-gradient-to-r from-green-600 to-teal-600 text-white hover:from-green-700 hover:to-teal-700 focus:ring-green-500",
-    secondary: "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-green-500",
-    outline: "border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-green-500",
-    danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+      "bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 focus:ring-emerald-500 shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:-translate-y-0.5 active:translate-y-0",
+    secondary:
+      "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-500 hover:shadow-md",
+    outline:
+      "border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 focus:ring-emerald-500",
+    danger:
+      "bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 focus:ring-red-500 shadow-lg shadow-red-500/25",
+    ghost:
+      "text-gray-600 hover:text-gray-900 hover:bg-gray-100",
   }
 
   const sizes = {
     sm: "px-3 py-2 text-sm",
-    md: "px-4 py-2 text-sm",
+    md: "px-5 py-2.5 text-sm",
     lg: "px-6 py-3 text-base",
+    xl: "px-8 py-4 text-lg",
   }
 
   return (
@@ -30,7 +36,7 @@ const variants = {
         ${baseClasses}
         ${variants[variant]}
         ${sizes[size]}
-        ${disabled || loading ? "opacity-50 cursor-not-allowed" : ""}
+        ${disabled || loading ? "opacity-50 cursor-not-allowed transform-none shadow-none" : ""}
         ${className}
       `}
       disabled={disabled || loading}
