@@ -36,7 +36,21 @@ export function AuthProvider({ children }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       })
-      const data = await response.json()
+
+      const rawText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch (e) {
+        data = { message: 'Failed to parse JSON response' };
+      }
+
+      if (!response.ok) {
+        const errorMessage = data.message || "Login failed";
+        console.error("Login Error from API:", errorMessage);
+        return { success: false, error: errorMessage };
+      }
+
       console.log("Login response:", data)
 
       localStorage.setItem("authToken", data.token)
@@ -46,7 +60,8 @@ export function AuthProvider({ children }) {
 
       return { success: true, message: "Login successful" }
     } catch (error) {
-      return { success: false, error }
+      console.error("Login Exception:", error);
+      return { success: false, error: "An error occurred during login" }
     }
   }
 
@@ -59,12 +74,22 @@ export function AuthProvider({ children }) {
         body: JSON.stringify({ firstName, lastName, email, password, company }),
       })
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        return { success: false, error: errorData.message || "Registration failed" }
+      const rawText = await response.text();
+      console.log('Raw API Response from backend:', rawText);
+      let errorData;
+      try {
+        errorData = JSON.parse(rawText);
+      } catch (e) {
+        errorData = { message: 'Failed to parse JSON response' };
       }
 
-      const data = await response.json()
+      if (!response.ok) {
+        const errorMessage = errorData.message || (errorData.errors ? errorData.errors.join(", ") : "Registration failed");
+        console.error("Registration Error from API:", errorMessage);
+        return { success: false, error: errorMessage }
+      }
+
+      const data = errorData;
 
       const userData = {
         id: data.user._id || 1,
@@ -82,6 +107,7 @@ export function AuthProvider({ children }) {
 
       return { success: true }
     } catch (error) {
+      console.error("Registration Exception:", error);
       return { success: false, error: "Registration failed" }
     }
   }

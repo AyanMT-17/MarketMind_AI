@@ -94,6 +94,7 @@ app.get('/', (req, res) => {
 // Authentication Routes (with stricter rate limiting)
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
+    console.log('Incoming Register Request:', req.body);
     const { email, password, firstName, lastName, company } = req.body;
 
     // Validate input
