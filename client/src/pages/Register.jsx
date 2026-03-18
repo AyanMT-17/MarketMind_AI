@@ -49,7 +49,7 @@ function Register() {
       } else {
         addToast(result.error || "Registration failed", "error")
       }
-    } catch (error) {
+    } catch {
       addToast("An error occurred during registration", "error")
     } finally {
       setLoading(false)

@@ -1,12 +1,31 @@
-# React + Vite
+# MarketMind AI Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This package contains the React frontend for the MarketMind AI chatbot workspace.
 
-Currently, two official plugins are available:
+## Features
+- Authenticated dashboard for chatbot management
+- Chatbot builder for prompts, limits, and integrations
+- Real-time chat interface using Socket.IO with SSE fallback
+- Analytics view for usage and top questions
+- Route-level lazy loading for the main pages
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Environment
+Copy `.env.example` to `.env` and set:
 
-## Expanding the ESLint configuration
+```env
+VITE_API_BASE_URL=http://localhost:5000
+VITE_APP_NAME=MarketMind AI
+VITE_APP_VERSION=1.0.0
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Commands
+```bash
+npm install
+npm run dev
+npm run lint
+npm run build
+```
+
+## Notes
+- The frontend expects the backend to expose the chatbot-platform routes documented in the root `API_DOCUMENTATION.md`.
+- Login/register still use the compatible auth contract preserved during the rebuild.

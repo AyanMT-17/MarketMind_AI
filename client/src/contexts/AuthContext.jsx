@@ -1,8 +1,32 @@
+/* eslint-disable react-refresh/only-export-components */
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
 
 const AuthContext = createContext()
+
+function normalizeUser(rawUser) {
+  if (!rawUser) return null
+
+  const profile = rawUser.profile || {}
+  const firstName = rawUser.firstName || profile.firstName || ""
+  const lastName = rawUser.lastName || profile.lastName || ""
+  const company = rawUser.company || profile.company || ""
+
+  return {
+    ...rawUser,
+    profile: {
+      ...profile,
+      firstName,
+      lastName,
+      company,
+    },
+    firstName,
+    lastName,
+    company,
+    name: rawUser.name || [firstName, lastName].filter(Boolean).join(" ") || rawUser.email || "User",
+  }
+}
 
 export function useAuth() {
   const context = useContext(AuthContext)
@@ -23,8 +47,9 @@ export function AuthProvider({ children }) {
     const userData = localStorage.getItem("userData")
 
     if (token && userData) {
+      const normalizedUser = normalizeUser(JSON.parse(userData))
       setIsAuthenticated(true)
-      setUser(JSON.parse(userData))
+      setUser(normalizedUser)
     }
     setLoading(false)
   }, [])
@@ -41,7 +66,7 @@ export function AuthProvider({ children }) {
       let data;
       try {
         data = JSON.parse(rawText);
-      } catch (e) {
+      } catch {
         data = { message: 'Failed to parse JSON response' };
       }
 
@@ -54,9 +79,10 @@ export function AuthProvider({ children }) {
       console.log("Login response:", data)
 
       localStorage.setItem("authToken", data.token)
-      localStorage.setItem("userData", JSON.stringify(data.user))
+      const normalizedUser = normalizeUser(data.user)
+      localStorage.setItem("userData", JSON.stringify(normalizedUser))
       setIsAuthenticated(true)
-      setUser(data.user)
+      setUser(normalizedUser)
 
       return { success: true, message: "Login successful" }
     } catch (error) {
@@ -79,7 +105,7 @@ export function AuthProvider({ children }) {
       let errorData;
       try {
         errorData = JSON.parse(rawText);
-      } catch (e) {
+      } catch {
         errorData = { message: 'Failed to parse JSON response' };
       }
 
@@ -91,13 +117,18 @@ export function AuthProvider({ children }) {
 
       const data = errorData;
 
-      const userData = {
+      const userData = normalizeUser({
         id: data.user._id || 1,
         firstName: data.user.profile.firstName || firstName,
         lastName: data.user.profile.lastName || lastName,
         email: data.user.email || email,
         company: data.user.profile.company || company,
-      }
+        profile: {
+          firstName: data.user.profile.firstName || firstName,
+          lastName: data.user.profile.lastName || lastName,
+          company: data.user.profile.company || company,
+        },
+      })
 
       localStorage.setItem("authToken", data.token)
       localStorage.setItem("userData", JSON.stringify(userData))

@@ -1,37 +1,77 @@
 # MarketMind AI
 
-AI-powered marketing automation platform built with MERN stack and Generative AI.
+MarketMind AI is a comprehensive all-in-one marketing platform for small businesses, combining AI-powered chatbots with ad campaign management and business intelligence features.
 
-## Tech Stack
-- **Frontend:** React.js + Vite + Tailwind CSS
-- **Backend:** Node.js + Express.js
-- **Database:** MongoDB Atlas
-- **AI:** Google Gemma via Hugging Face API
-- **Email:** MailerSend API
+## Current Product Scope
 
-## Development Setup
+### Core Features
+- Authentication with JWT-based login and registration
+- Chatbot CRUD with prompt, model, and rate-limit settings
+- REST/webhook integration management
+- Server-sent event chat streaming
+- WebSocket chat transport with Socket.IO
+- Conversation history and export
+- Usage analytics and top-question reporting
 
-### Prerequisites
-- Node.js (v18+)
-- MongoDB Atlas account
-- Hugging Face account with Gemma access
-- MailerSend account
+### Marketing & Analytics Features (v2.1+)
+- **Ad Campaign Management**: Create and manage social media ad campaigns across Facebook, Google, Instagram, LinkedIn, TikTok, and Twitter
+- **Campaign Performance Tracking**: Monitor impressions, clicks, conversions, CTR, CPC, CPA, and ROI in real-time
+- **Business Metrics Management**: Upload quarterly sales and profit data via CSV or manual entry
+- **AI-Powered Business Prediction**: Generate detailed forecasts using Groq AI analysis of historical business data
+- **Advanced Analytics**: Identify trends, risks, opportunities, and receive strategic recommendations
 
-### Getting Started
-1. Clone the repository
-2. Set up backend: `cd server && npm install`
-3. Set up frontend: `cd client && npm install`
-4. Configure environment variables
-5. Start development servers
+## Stack
+- Frontend: React, Vite, Tailwind CSS, Recharts
+- Backend: Node.js, Express, Mongoose
+- Database: MongoDB
+- AI provider: Groq
 
-## Project Status
-🚧 **In Development**
+## Project Structure
+```text
+MarketMind_AI/
+├── client/
+│   └── src/
+│       ├── components/
+│       ├── contexts/
+│       ├── hooks/
+│       └── pages/
+│           ├── AdCampaignBuilder.jsx      [NEW]
+│           ├── BusinessPrediction.jsx     [NEW]
+│           └── ...
+├── server/
+│   ├── database.js                        [UPDATED]
+│   ├── services.js                        [UPDATED]
+│   └── server.js                          [UPDATED]
+├── ARCHITECTURE.md
+├── API_DOCUMENTATION.md
+├── NEW_FEATURES.md                        [NEW]
+└── SETUP_GUIDE.md
+```
 
-## Features (Planned)
-- [ ] User Authentication
-- [ ] AI Content Generation
-- [ ] Campaign Management
-- [ ] Content Scheduling
-- [ ] Lead Management
-- [ ] Sales Forecasting
-- [ ] Analytics Dashboard
+## Quick Start
+See [SETUP_GUIDE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/SETUP_GUIDE.md) for the full setup.
+
+Basic local flow:
+1. Install backend dependencies in `server/`.
+2. Install frontend dependencies in `client/`.
+3. Create backend `.env` values for `MONGODB_URI`, `JWT_SECRET`, `GROQ_API_KEY`, and `CLIENT_URL`.
+4. Set `VITE_API_BASE_URL` in `client/.env`.
+5. Run the backend and frontend dev servers.
+
+## Documentation
+- Architecture: [ARCHITECTURE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/ARCHITECTURE.md)
+- API reference: [API_DOCUMENTATION.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/API_DOCUMENTATION.md)
+- New Features Guide: [NEW_FEATURES.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/NEW_FEATURES.md)
+- Setup: [SETUP_GUIDE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/SETUP_GUIDE.md)
+- Deployment: [DEPLOYMENT.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/DEPLOYMENT.md)
+- Current status: [STATUS_REPORT.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/STATUS_REPORT.md)
+
+## Status
+Implemented:
+- Backend chatbot platform rewrite
+- Frontend chatbot workspace rewrite
+- Lint-clean client build
+
+Still to do:
+- Full end-to-end runtime verification against real services
+- Production deployment hardening and monitoring

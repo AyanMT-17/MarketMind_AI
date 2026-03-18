@@ -7,52 +7,78 @@ function Sidebar({ isOpen, setIsOpen }) {
   const { logout, user } = useAuth()
 
   const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: "📊" },
-    { name: "Campaigns", href: "/campaigns", icon: "📢" },
-    { name: "AI Content", href: "/campaign-builder", icon: "✨" },
-    { name: "Forecasting", href: "/forecasting", icon: "📈" },
-    { name: "Leads", href: "/leads", icon: "👥" },
-    { name: "Campaign Builder", href: "/Campaign_creation", icon: "🎨" },
+    { name: "Dashboard", href: "/dashboard", icon: "grid" },
+    { name: "New Chatbot", href: "/chatbots/new", icon: "spark" },
+    { name: "Ad Campaigns", href: "/campaigns", icon: "campaign" },
+    { name: "Business Prediction", href: "/predictions", icon: "chart" },
   ]
 
-  const isActive = (href) => location.pathname === href
+  const isActive = (href) => location.pathname === href || location.pathname.startsWith(`${href}/`)
+
+  const renderIcon = (icon) => {
+    if (icon === "grid") {
+      return (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 5h7v6H4zM13 5h7v6h-7zM4 13h7v6H4zM13 13h7v6h-7z" />
+        </svg>
+      )
+    }
+
+    if (icon === "campaign") {
+      return (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      )
+    }
+
+    if (icon === "chart") {
+      return (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+        </svg>
+      )
+    }
+
+    return (
+      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" />
+      </svg>
+    )
+  }
 
   return (
     <>
-      {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 lg:hidden bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={`
         fixed inset-y-0 left-0 z-50 w-72 
-        bg-gradient-to-b from-slate-900 via-emerald-950 to-teal-950
+        bg-[linear-gradient(180deg,_#092f33_0%,_#0d3b44_30%,_#102b39_100%)]
         transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
         shadow-2xl
         ${isOpen ? "translate-x-0" : "-translate-x-full"}
       `}
       >
-        {/* Logo Header */}
-        <div className="flex items-center gap-3 h-20 px-6 border-b border-white/10">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        <div className="flex h-20 items-center gap-3 border-b border-white/10 px-6">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-500 shadow-lg shadow-cyan-500/30">
+            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" />
             </svg>
           </div>
           <div>
             <h1 className="text-lg font-bold text-white">MarketMind</h1>
-            <p className="text-xs text-emerald-300/70">AI Marketing Suite</p>
+            <p className="text-xs text-cyan-200/70">AI Chatbot Platform</p>
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="mt-6 px-4">
-          <p className="px-4 text-xs font-semibold text-emerald-300/50 uppercase tracking-wider mb-3">
+          <p className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-cyan-100/50">
             Main Menu
           </p>
           <div className="space-y-1">
@@ -61,43 +87,46 @@ function Sidebar({ isOpen, setIsOpen }) {
                 key={item.name}
                 to={item.href}
                 className={`
-                  flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200
+                  flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200
                   ${isActive(item.href)
-                    ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-white border-l-4 border-emerald-400 shadow-lg shadow-emerald-500/10"
-                    : "text-emerald-100/70 hover:bg-white/5 hover:text-white"
+                    ? "border border-cyan-300/20 bg-gradient-to-r from-cyan-400/20 to-teal-400/10 text-white shadow-lg shadow-cyan-500/10"
+                    : "text-cyan-100/70 hover:bg-white/5 hover:text-white"
                   }
                 `}
                 onClick={() => setIsOpen(false)}
               >
-                <span className="mr-3 text-lg">{item.icon}</span>
+                <span className="mr-3">{renderIcon(item.icon)}</span>
                 {item.name}
               </Link>
             ))}
           </div>
         </nav>
 
-        {/* User Profile Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+        <div className="mx-4 mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-cyan-50">
+          <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/60">What&apos;s New</p>
+          <h2 className="mt-2 text-sm font-semibold">Real-time assistant delivery</h2>
+          <p className="mt-2 text-sm text-cyan-100/70">
+            Build a bot, test integrations, then stream replies live with token and usage tracking.
+          </p>
+        </div>
+
+        <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 p-4">
           {user && (
-            <div className="flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-white/5">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-semibold">
-                {user.firstName?.[0] || user.email?.[0]?.toUpperCase() || 'U'}
+            <div className="mb-2 flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 font-semibold text-white">
+                {user.firstName?.[0] || user.email?.[0]?.toUpperCase() || "U"}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
-                  {user.firstName || 'User'}
-                </p>
-                <p className="text-xs text-emerald-300/70 truncate">
-                  {user.email || 'user@example.com'}
-                </p>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-white">{user.name || "User"}</p>
+                <p className="truncate text-xs text-cyan-200/70">{user.email || "user@example.com"}</p>
               </div>
             </div>
           )}
           <button
             onClick={logout}
-            className="w-full flex items-center px-4 py-3 text-sm font-medium text-emerald-100/70 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all duration-200"
+            className="flex w-full items-center rounded-xl px-4 py-3 text-sm font-medium text-cyan-100/70 transition-all duration-200 hover:bg-red-500/10 hover:text-red-300"
           >
-            <span className="mr-3 text-lg">🚪</span>
+            <span className="mr-3 text-lg">⇠</span>
             Sign Out
           </button>
         </div>

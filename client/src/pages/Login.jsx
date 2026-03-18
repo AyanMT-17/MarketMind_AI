@@ -34,7 +34,7 @@ function Login() {
       } else {
         addToast(result.error || "Login failed", "error")
       }
-    } catch (error) {
+    } catch {
       addToast("An error occurred during login", "error")
     } finally {
       setLoading(false)

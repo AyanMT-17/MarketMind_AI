@@ -5,28 +5,35 @@ function Header({ toggleSidebar }) {
   const { user } = useAuth()
 
   return (
-    <header className="bg-green-50 shadow-md border-b border-green-200">
+    <header className="border-b border-slate-200/80 bg-white/80 backdrop-blur-xl">
       <div className="flex items-center justify-between px-6 py-4">
-        <div className="flex items-center">
+        <div className="flex items-center gap-4">
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-md text-green-500 hover:text-green-600 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500 lg:hidden"
+            className="rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100 lg:hidden"
           >
             <span className="sr-only">Open sidebar</span>
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-600">MarketMind AI</p>
+            <h1 className="text-lg font-semibold text-slate-900">Chatbot Control Center</h1>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">{user?.name?.charAt(0) || "U"}</span>
+        <div className="flex items-center gap-4">
+          <div className="hidden rounded-2xl border border-teal-100 bg-teal-50 px-4 py-2 text-sm text-teal-800 md:block">
+            Streaming, analytics, and integrations are live.
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-cyan-500 text-sm font-semibold text-white shadow-lg shadow-teal-500/20">
+              {user?.name?.charAt(0) || "U"}
             </div>
             <div className="hidden md:block">
-              <p className="text-sm font-medium text-green-900">{user?.name}</p>
-              <p className="text-xs text-green-600">{user?.company}</p>
+              <p className="text-sm font-semibold text-slate-900">{user?.name}</p>
+              <p className="text-xs text-slate-500">{user?.company || "No company set"}</p>
             </div>
           </div>
         </div>
