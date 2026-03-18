@@ -1,4 +1,5 @@
 import { useEffect, useState, startTransition, useDeferredValue } from "react"
+import { getApiBaseUrl } from "../lib/api"
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("authToken")
@@ -8,7 +9,7 @@ const getAuthHeaders = () => {
   }
 }
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+const apiBaseUrl = getApiBaseUrl()
 
 export function useChatbots() {
   const [chatbots, setChatbots] = useState([])
@@ -22,7 +23,7 @@ export function useChatbots() {
     setError("")
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/chatbots`, {
+      const response = await fetch(`${apiBaseUrl}/chatbots`, {
         headers: getAuthHeaders(),
       })
       const data = await response.json()
@@ -81,7 +82,7 @@ export function useChatbot(chatbotId) {
       setError("")
 
       try {
-        const response = await fetch(`${apiBaseUrl}/api/chatbots/${chatbotId}`, {
+        const response = await fetch(`${apiBaseUrl}/chatbots/${chatbotId}`, {
           headers: getAuthHeaders(),
         })
         const data = await response.json()
@@ -107,8 +108,8 @@ export function useChatbot(chatbotId) {
 export async function saveChatbot(chatbotId, payload) {
   const method = chatbotId ? "PUT" : "POST"
   const url = chatbotId
-    ? `${apiBaseUrl}/api/chatbots/${chatbotId}`
-    : `${apiBaseUrl}/api/chatbots`
+    ? `${apiBaseUrl}/chatbots/${chatbotId}`
+    : `${apiBaseUrl}/chatbots`
 
   const response = await fetch(url, {
     method,
@@ -125,7 +126,7 @@ export async function saveChatbot(chatbotId, payload) {
 }
 
 export async function deleteChatbot(chatbotId) {
-  const response = await fetch(`${apiBaseUrl}/api/chatbots/${chatbotId}`, {
+  const response = await fetch(`${apiBaseUrl}/chatbots/${chatbotId}`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   })
@@ -137,7 +138,7 @@ export async function deleteChatbot(chatbotId) {
 }
 
 export async function generateDeploymentKey(chatbotId) {
-  const response = await fetch(`${apiBaseUrl}/api/chatbots/${chatbotId}/key`, {
+  const response = await fetch(`${apiBaseUrl}/chatbots/${chatbotId}/key`, {
     headers: getAuthHeaders(),
   })
   const data = await response.json()
@@ -150,7 +151,7 @@ export async function generateDeploymentKey(chatbotId) {
 }
 
 export async function testAllIntegrations(chatbotId) {
-  const response = await fetch(`${apiBaseUrl}/api/chatbots/${chatbotId}/test`, {
+  const response = await fetch(`${apiBaseUrl}/chatbots/${chatbotId}/test`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -165,7 +166,7 @@ export async function testAllIntegrations(chatbotId) {
 
 export async function fetchIntegrations(chatbotId) {
   const query = chatbotId ? `?chatbotId=${chatbotId}` : ""
-  const response = await fetch(`${apiBaseUrl}/api/integrations${query}`, {
+  const response = await fetch(`${apiBaseUrl}/integrations${query}`, {
     headers: getAuthHeaders(),
   })
   const data = await response.json()
@@ -180,8 +181,8 @@ export async function fetchIntegrations(chatbotId) {
 export async function saveIntegration(integrationId, payload) {
   const method = integrationId ? "PUT" : "POST"
   const url = integrationId
-    ? `${apiBaseUrl}/api/integrations/${integrationId}`
-    : `${apiBaseUrl}/api/integrations`
+    ? `${apiBaseUrl}/integrations/${integrationId}`
+    : `${apiBaseUrl}/integrations`
 
   const response = await fetch(url, {
     method,
@@ -198,7 +199,7 @@ export async function saveIntegration(integrationId, payload) {
 }
 
 export async function removeIntegration(integrationId) {
-  const response = await fetch(`${apiBaseUrl}/api/integrations/${integrationId}`, {
+  const response = await fetch(`${apiBaseUrl}/integrations/${integrationId}`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   })
@@ -210,7 +211,7 @@ export async function removeIntegration(integrationId) {
 }
 
 export async function testIntegration(integrationId) {
-  const response = await fetch(`${apiBaseUrl}/api/integrations/${integrationId}/test`, {
+  const response = await fetch(`${apiBaseUrl}/integrations/${integrationId}/test`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify({}),
@@ -225,7 +226,7 @@ export async function testIntegration(integrationId) {
 }
 
 export async function fetchAnalytics(chatbotId) {
-  const response = await fetch(`${apiBaseUrl}/api/analytics/${chatbotId}`, {
+  const response = await fetch(`${apiBaseUrl}/analytics/${chatbotId}`, {
     headers: getAuthHeaders(),
   })
   const data = await response.json()
@@ -238,7 +239,7 @@ export async function fetchAnalytics(chatbotId) {
 }
 
 export async function fetchUsage(chatbotId) {
-  const response = await fetch(`${apiBaseUrl}/api/usage/${chatbotId}`, {
+  const response = await fetch(`${apiBaseUrl}/usage/${chatbotId}`, {
     headers: getAuthHeaders(),
   })
   const data = await response.json()
@@ -251,7 +252,7 @@ export async function fetchUsage(chatbotId) {
 }
 
 export async function fetchRecentConversations(chatbotId) {
-  const response = await fetch(`${apiBaseUrl}/api/conversations/${chatbotId}/recent`, {
+  const response = await fetch(`${apiBaseUrl}/conversations/${chatbotId}/recent`, {
     headers: getAuthHeaders(),
   })
   const data = await response.json()

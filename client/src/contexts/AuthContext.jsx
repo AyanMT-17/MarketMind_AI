@@ -2,6 +2,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
+import { getApiBaseUrl } from "../lib/api"
 
 const AuthContext = createContext()
 
@@ -37,6 +38,7 @@ export function useAuth() {
 }
 
 export function AuthProvider({ children }) {
+  const apiBaseUrl = getApiBaseUrl()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -56,7 +58,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
+      const response = await fetch(`${apiBaseUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -94,7 +96,7 @@ export function AuthProvider({ children }) {
   const register = async (firstName, lastName, email, password, company) => {
     try {
       // API call to backend register endpoint
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/register`, {
+      const response = await fetch(`${apiBaseUrl}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ firstName, lastName, email, password, company }),

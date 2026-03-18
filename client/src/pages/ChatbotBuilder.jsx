@@ -260,10 +260,10 @@ function ChatbotBuilder() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-600">
+          <p className="editorial-eyebrow text-xs font-semibold uppercase">
             {chatbotId ? "Refine chatbot" : "Create chatbot"}
           </p>
-          <h1 className="mt-2 text-3xl font-semibold text-slate-900">
+          <h1 className="editorial-title mt-2 text-3xl font-semibold text-[#1f201d]">
             {chatbotId ? "Tune the assistant, integrations, and limits" : "Build a new assistant from scratch"}
           </h1>
         </div>
@@ -284,11 +284,11 @@ function ChatbotBuilder() {
           <div className="grid gap-4 md:grid-cols-2">
             <Input label="Chatbot name" value={form.name} onChange={(event) => updateForm("name", event.target.value)} />
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <label className="block text-sm font-medium text-[#4f473d]">Status</label>
               <select
                 value={form.status}
                 onChange={(event) => updateForm("status", event.target.value)}
-                className="block w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 transition-all focus:border-emerald-500 focus:bg-white focus:outline-none"
+                className="block w-full rounded-[1.35rem] border border-[#e4d5c2] bg-[#fffaf1] px-4 py-3 text-[#1f201d] transition-all focus:border-[#3fc46f] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
               >
                 <option value="draft">Draft</option>
                 <option value="active">Active</option>
@@ -298,22 +298,22 @@ function ChatbotBuilder() {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label className="block text-sm font-medium text-[#4f473d]">Description</label>
             <textarea
               value={form.description}
               onChange={(event) => updateForm("description", event.target.value)}
               rows={3}
-              className="block w-full rounded-2xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 transition-all focus:border-emerald-500 focus:bg-white focus:outline-none"
+              className="block w-full rounded-[1.35rem] border border-[#e4d5c2] bg-[#fffaf1] px-4 py-3 text-[#1f201d] transition-all focus:border-[#3fc46f] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">System prompt</label>
+            <label className="block text-sm font-medium text-[#4f473d]">System prompt</label>
             <textarea
               value={form.config.systemPrompt}
               onChange={(event) => updateForm("config.systemPrompt", event.target.value)}
               rows={7}
-              className="block w-full rounded-2xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 transition-all focus:border-emerald-500 focus:bg-white focus:outline-none"
+              className="block w-full rounded-[1.35rem] border border-[#e4d5c2] bg-[#fffaf1] px-4 py-3 text-[#1f201d] transition-all focus:border-[#3fc46f] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
             />
           </div>
 
@@ -347,8 +347,8 @@ function ChatbotBuilder() {
             onChange={(event) => updateForm("config.welcomeMessage", event.target.value)}
           />
 
-          <div className="rounded-[1.75rem] border border-teal-100 bg-teal-50/70 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-600">Business profile</p>
+          <div className="rounded-[1.75rem] border border-[#cfeace] bg-[#eef9ef] p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#249a52]">Business profile</p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <Input
                 label="Business name"
@@ -372,12 +372,12 @@ function ChatbotBuilder() {
               />
             </div>
             <div className="mt-4 space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Value proposition</label>
+              <label className="block text-sm font-medium text-[#4f473d]">Value proposition</label>
               <textarea
                 value={form.businessProfile.valueProposition}
                 onChange={(event) => updateForm("businessProfile.valueProposition", event.target.value)}
                 rows={3}
-                className="block w-full rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 transition-all focus:border-emerald-500 focus:bg-white focus:outline-none"
+                className="block w-full rounded-[1.35rem] border border-[#d7e7d5] bg-[#fffaf1] px-4 py-3 text-[#1f201d] transition-all focus:border-[#3fc46f] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
               />
             </div>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -412,8 +412,8 @@ function ChatbotBuilder() {
             </div>
           </div>
 
-          <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Business automation</p>
+          <div className="rounded-[1.75rem] border border-[#eadbc7] bg-[#fbf4e8] p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#8a7b69]">Business automation</p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <Input
                 label="Primary call to action"
@@ -441,30 +441,30 @@ function ChatbotBuilder() {
               />
             </div>
             <div className="mt-4 space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Escalation message</label>
+              <label className="block text-sm font-medium text-[#4f473d]">Escalation message</label>
               <textarea
                 value={form.automation.escalationMessage}
                 onChange={(event) => updateForm("automation.escalationMessage", event.target.value)}
                 rows={3}
-                className="block w-full rounded-2xl border-2 border-gray-200 bg-white px-4 py-3 text-gray-900 transition-all focus:border-emerald-500 focus:bg-white focus:outline-none"
+                className="block w-full rounded-[1.35rem] border border-[#e4d5c2] bg-[#fffaf1] px-4 py-3 text-[#1f201d] transition-all focus:border-[#3fc46f] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
               />
             </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <label className="flex items-center gap-3 rounded-2xl bg-white p-4 text-sm text-slate-700">
+              <label className="flex items-center gap-3 rounded-[1.4rem] bg-[#fffaf1] p-4 text-sm text-[#4f473d]">
                 <input
                   type="checkbox"
                   checked={form.automation.leadCaptureEnabled}
                   onChange={(event) => updateForm("automation.leadCaptureEnabled", event.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  className="h-4 w-4 rounded border-[#d8c5af] text-[#3fc46f] focus:ring-[#dff5e3]"
                 />
                 Capture lead details from conversations
               </label>
-              <label className="flex items-center gap-3 rounded-2xl bg-white p-4 text-sm text-slate-700">
+              <label className="flex items-center gap-3 rounded-[1.4rem] bg-[#fffaf1] p-4 text-sm text-[#4f473d]">
                 <input
                   type="checkbox"
                   checked={form.automation.escalationEnabled}
                   onChange={(event) => updateForm("automation.escalationEnabled", event.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                  className="h-4 w-4 rounded border-[#d8c5af] text-[#3fc46f] focus:ring-[#dff5e3]"
                 />
                 Suggest human handoff when needed
               </label>
@@ -498,12 +498,12 @@ function ChatbotBuilder() {
             />
           </div>
 
-          <label className="flex items-center gap-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+          <label className="flex items-center gap-3 rounded-[1.4rem] bg-[#fbf4e8] p-4 text-sm text-[#4f473d]">
             <input
               type="checkbox"
               checked={form.settings.requireAuth}
               onChange={(event) => updateForm("settings.requireAuth", event.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+              className="h-4 w-4 rounded border-[#d8c5af] text-[#3fc46f] focus:ring-[#dff5e3]"
             />
             Require authentication for chat requests
           </label>
@@ -513,8 +513,8 @@ function ChatbotBuilder() {
           <Card hover={false} className="space-y-5 rounded-[2rem]">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-slate-900">Integrations</h2>
-                <p className="mt-1 text-sm text-slate-500">Attach customer APIs the assistant can query during chats.</p>
+                <h2 className="text-xl font-semibold text-[#1f201d]">Integrations</h2>
+                <p className="mt-1 text-sm text-[#6a6055]">Attach customer APIs the assistant can query during chats.</p>
               </div>
               {chatbotId ? <Button variant="outline" onClick={handleTestAll}>Run all tests</Button> : null}
             </div>
@@ -549,7 +549,7 @@ function ChatbotBuilder() {
                 }
               />
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Method</label>
+                <label className="block text-sm font-medium text-[#4f473d]">Method</label>
                 <select
                   value={integrationDraft.config.endpoints[0].method}
                   onChange={(event) =>
@@ -561,7 +561,7 @@ function ChatbotBuilder() {
                       },
                     }))
                   }
-                  className="block w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 transition-all focus:border-emerald-500 focus:bg-white focus:outline-none"
+                  className="block w-full rounded-[1.35rem] border border-[#e4d5c2] bg-[#fffaf1] px-4 py-3 text-[#1f201d] transition-all focus:border-[#3fc46f] focus:bg-white focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
                 >
                   <option value="GET">GET</option>
                   <option value="POST">POST</option>
@@ -578,19 +578,19 @@ function ChatbotBuilder() {
 
           <Card hover={false} className="space-y-4 rounded-[2rem]">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-slate-900">Saved integrations</h2>
-              {integrationLoading ? <span className="text-sm text-slate-500">Loading...</span> : null}
+              <h2 className="text-xl font-semibold text-[#1f201d]">Saved integrations</h2>
+              {integrationLoading ? <span className="text-sm text-[#6a6055]">Loading...</span> : null}
             </div>
 
             {integrations.length === 0 ? (
-              <p className="text-sm text-slate-500">No integrations yet. Save this chatbot first, then connect an endpoint.</p>
+              <p className="text-sm text-[#6a6055]">No integrations yet. Save this chatbot first, then connect an endpoint.</p>
             ) : (
               integrations.map((integration) => (
-                <div key={integration._id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div key={integration._id} className="rounded-[1.6rem] border border-[#eadbc7] bg-[#fffaf1] p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-slate-900">{integration.name}</p>
-                      <p className="text-sm text-slate-500">{integration.config?.baseUrl}</p>
+                      <p className="font-semibold text-[#1f201d]">{integration.name}</p>
+                      <p className="text-sm text-[#6a6055]">{integration.config?.baseUrl}</p>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" onClick={() => handleTestIntegration(integration._id)}>
@@ -602,7 +602,7 @@ function ChatbotBuilder() {
                     </div>
                   </div>
                   {integration.testResult?.testedAt ? (
-                    <p className={`mt-3 text-sm ${integration.testResult.success ? "text-emerald-700" : "text-red-600"}`}>
+                    <p className={`mt-3 text-sm ${integration.testResult.success ? "text-[#249a52]" : "text-red-600"}`}>
                       {integration.testResult.success ? "Last test passed" : integration.testResult.error || "Last test failed"}
                     </p>
                   ) : null}

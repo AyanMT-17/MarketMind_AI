@@ -70,9 +70,9 @@ function Analytics() {
     <div className="space-y-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-600">Usage intelligence</p>
-          <h1 className="mt-2 text-3xl font-semibold text-slate-900">{chatbot?.name} analytics</h1>
-          <p className="mt-2 text-slate-500">Monitor conversation volume, token usage, API calls, leads captured, and repeated user questions.</p>
+          <p className="editorial-eyebrow text-xs font-semibold uppercase">Usage intelligence</p>
+          <h1 className="editorial-title mt-2 text-3xl font-semibold text-[#1f201d]">{chatbot?.name} analytics</h1>
+          <p className="mt-2 text-[#6a6055]">Monitor conversation volume, token usage, API calls, leads captured, and repeated user questions.</p>
         </div>
         <div className="flex gap-3">
           <Link to={`/chatbots/${chatbotId}/chat`}>
@@ -86,19 +86,19 @@ function Analytics() {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         {statCards.map((item) => (
-          <Card key={item.label} hover={false} className="rounded-[1.75rem]">
-            <p className="text-sm text-slate-500">{item.label}</p>
-            <p className="mt-3 text-3xl font-semibold text-slate-900">{item.value}</p>
+          <Card key={item.label} hover={false} className="rounded-[1.8rem] bg-[rgba(255,251,245,0.88)]">
+            <p className="text-sm text-[#6a6055]">{item.label}</p>
+            <p className="mt-3 text-3xl font-semibold text-[#1f201d]">{item.value}</p>
           </Card>
         ))}
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card hover={false} className="rounded-[2rem]">
+        <Card hover={false} className="rounded-[2.2rem] bg-[rgba(255,251,245,0.88)]">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-slate-900">Activity snapshot</h2>
-              <p className="mt-1 text-sm text-slate-500">Current aggregate metrics pulled directly from the backend analytics route.</p>
+              <h2 className="text-xl font-semibold text-[#1f201d]">Activity snapshot</h2>
+              <p className="mt-1 text-sm text-[#6a6055]">Current aggregate metrics pulled directly from the backend analytics route.</p>
             </div>
           </div>
           <div className="mt-6 h-80">
@@ -106,33 +106,33 @@ function Analytics() {
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="analyticsGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0d9488" stopOpacity={0.5} />
-                    <stop offset="95%" stopColor="#0d9488" stopOpacity={0.05} />
+                    <stop offset="5%" stopColor="#3fc46f" stopOpacity={0.45} />
+                    <stop offset="95%" stopColor="#3fc46f" stopOpacity={0.06} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis dataKey="label" stroke="#64748b" />
-                <YAxis stroke="#64748b" />
-                <Tooltip />
-                <Area type="monotone" dataKey="value" stroke="#0d9488" fill="url(#analyticsGradient)" strokeWidth={3} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e7d8c3" />
+                <XAxis dataKey="label" stroke="#7a6f61" />
+                <YAxis stroke="#7a6f61" />
+                <Tooltip contentStyle={{ borderRadius: "20px", borderColor: "#e7d8c3", backgroundColor: "#fffaf1" }} />
+                <Area type="monotone" dataKey="value" stroke="#249a52" fill="url(#analyticsGradient)" strokeWidth={3} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
-        <Card hover={false} className="rounded-[2rem]">
-          <h2 className="text-xl font-semibold text-slate-900">Top questions</h2>
-          <p className="mt-1 text-sm text-slate-500">Frequently repeated prompts gathered from stored conversations.</p>
+        <Card hover={false} className="rounded-[2.2rem] bg-[rgba(255,251,245,0.88)]">
+          <h2 className="text-xl font-semibold text-[#1f201d]">Top questions</h2>
+          <p className="mt-1 text-sm text-[#6a6055]">Frequently repeated prompts gathered from stored conversations.</p>
 
           <div className="mt-6 space-y-4">
             {(analytics?.topQuestions || []).length === 0 ? (
-              <p className="text-sm text-slate-500">No repeated questions yet. Start a few conversations to populate this panel.</p>
+              <p className="text-sm text-[#6a6055]">No repeated questions yet. Start a few conversations to populate this panel.</p>
             ) : (
               analytics.topQuestions.map((item, index) => (
-                <div key={`${item.question}-${index}`} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div key={`${item.question}-${index}`} className="rounded-[1.6rem] border border-[#eadbc7] bg-[#fffaf1] p-4">
                   <div className="flex items-center justify-between gap-4">
-                    <p className="text-sm font-medium text-slate-800">{item.question}</p>
-                    <span className="rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold text-teal-700">
+                    <p className="text-sm font-medium text-[#1f201d]">{item.question}</p>
+                    <span className="rounded-full bg-[#eef9ef] px-3 py-1 text-xs font-semibold text-[#249a52]">
                       {item.count}x
                     </span>
                   </div>

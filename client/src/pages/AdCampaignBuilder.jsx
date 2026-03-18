@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../contexts/ToastContext'
 import Button from '../components/UI/Button'
 import Card from '../components/UI/Card'
 import Input from '../components/UI/Input'
 import LoadingSpinner from '../components/UI/LoadingSpinner'
+import { getApiBaseUrl } from '../lib/api'
 
 export default function AdCampaignBuilder() {
-  const { user } = useAuth()
   const { addToast: showToast } = useToast()
-  const navigate = useNavigate()
 
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(false)
@@ -44,7 +41,7 @@ export default function AdCampaignBuilder() {
     }
   })
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
+  const API_BASE_URL = getApiBaseUrl()
 
   useEffect(() => {
     fetchCampaigns()
@@ -60,7 +57,7 @@ export default function AdCampaignBuilder() {
       if (data.success) {
         setCampaigns(data.campaigns)
       }
-    } catch (error) {
+    } catch {
       showToast('Failed to fetch campaigns', 'error')
     } finally {
       setLoading(false)
@@ -172,7 +169,7 @@ export default function AdCampaignBuilder() {
         })
         fetchCampaigns()
       }
-    } catch (error) {
+    } catch {
       showToast('Failed to save campaign', 'error')
     } finally {
       setLoading(false)
@@ -217,7 +214,7 @@ export default function AdCampaignBuilder() {
           showToast('Campaign deleted successfully', 'success')
           fetchCampaigns()
         }
-      } catch (error) {
+      } catch {
         showToast('Failed to delete campaign', 'error')
       }
     }
@@ -228,16 +225,16 @@ export default function AdCampaignBuilder() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+    <div className="space-y-8 p-2">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800">Ad Campaigns</h1>
+          <h1 className="editorial-title text-4xl font-bold text-[#1f201d]">Ad Campaigns</h1>
           <Button
             onClick={() => {
               setShowForm(!showForm)
               setEditingId(null)
             }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            variant="secondary"
           >
             {showForm ? 'Cancel' : 'Create Campaign'}
           </Button>
@@ -245,7 +242,7 @@ export default function AdCampaignBuilder() {
 
         {showForm && (
           <Card className="mb-8 p-6">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">
+            <h2 className="text-2xl font-bold mb-6 text-[#1f201d]">
               {editingId ? 'Edit Campaign' : 'Create New Campaign'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -258,12 +255,12 @@ export default function AdCampaignBuilder() {
                   required
                 />
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
+                  <label className="mb-2 block text-sm font-medium text-[#4f473d]">Platform</label>
                   <select
                     name="platform"
                     value={formData.platform}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                    className="w-full rounded-[1.35rem] border border-[#e4d5c2] bg-[#fffaf1] px-4 py-3 text-[#1f201d] focus:border-[#3fc46f] focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
                   >
                     <option value="facebook">Facebook</option>
                     <option value="google">Google Ads</option>
@@ -280,7 +277,7 @@ export default function AdCampaignBuilder() {
                 placeholder="Campaign Description"
                 value={formData.description}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full rounded-[1.35rem] border border-[#e4d5c2] bg-[#fffaf1] px-4 py-3 text-[#1f201d] focus:border-[#3fc46f] focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
                 rows="2"
               />
 
@@ -303,7 +300,7 @@ export default function AdCampaignBuilder() {
               </div>
 
               <div className="border-t pt-6">
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">Target Audience</h3>
+                <h3 className="mb-4 text-xl font-semibold text-[#1f201d]">Target Audience</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
                     label="Min Age"
@@ -336,12 +333,12 @@ export default function AdCampaignBuilder() {
                     }}
                   />
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                    <label className="mb-2 block text-sm font-medium text-[#4f473d]">Gender</label>
                     <select
                       name="audience_gender"
                       value={formData.targetAudience.gender}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full rounded-[1.35rem] border border-[#e4d5c2] bg-[#fffaf1] px-4 py-3 text-[#1f201d] focus:border-[#3fc46f] focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
                     >
                       <option value="all">All</option>
                       <option value="male">Male</option>
@@ -373,7 +370,7 @@ export default function AdCampaignBuilder() {
               </div>
 
               <div className="border-t pt-6">
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">Ad Content</h3>
+                <h3 className="mb-4 text-xl font-semibold text-[#1f201d]">Ad Content</h3>
                 <Input
                   label="Headline"
                   name="content_headline"
@@ -386,7 +383,7 @@ export default function AdCampaignBuilder() {
                   placeholder="Ad Description"
                   value={formData.adContent.description}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-full rounded-[1.35rem] border border-[#e4d5c2] bg-[#fffaf1] px-4 py-3 text-[#1f201d] focus:border-[#3fc46f] focus:outline-none focus:ring-4 focus:ring-[#dff5e3]"
                   rows="3"
                 />
                 <Input
@@ -413,7 +410,7 @@ export default function AdCampaignBuilder() {
               </div>
 
               <div className="border-t pt-6">
-                <h3 className="text-xl font-semibold mb-4 text-gray-800">Schedule</h3>
+                <h3 className="mb-4 text-xl font-semibold text-[#1f201d]">Schedule</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Start Date"
@@ -438,7 +435,6 @@ export default function AdCampaignBuilder() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   {loading ? 'Saving...' : 'Save Campaign'}
                 </Button>
@@ -448,7 +444,7 @@ export default function AdCampaignBuilder() {
                     setShowForm(false)
                     setEditingId(null)
                   }}
-                  className="bg-gray-500 hover:bg-gray-600 text-white"
+                  variant="secondary"
                 >
                   Cancel
                 </Button>
@@ -460,13 +456,13 @@ export default function AdCampaignBuilder() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {campaigns.map(campaign => (
             <Card key={campaign._id} className="p-6 hover:shadow-lg transition">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{campaign.name}</h3>
-              <p className="text-gray-600 text-sm mb-4">{campaign.description}</p>
+              <h3 className="mb-2 text-xl font-bold text-[#1f201d]">{campaign.name}</h3>
+              <p className="mb-4 text-sm text-[#6a6055]">{campaign.description}</p>
               
-              <div className="space-y-2 mb-4 text-sm text-gray-700">
+              <div className="mb-4 space-y-2 text-sm text-[#4f473d]">
                 <p><strong>Platform:</strong> {campaign.platform}</p>
                 <p><strong>Budget:</strong> ${campaign.budget.toFixed(2)}</p>
-                <p><strong>Status:</strong> <span className={`px-2 py-1 rounded text-white text-xs ${campaign.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}`}>{campaign.status}</span></p>
+                <p><strong>Status:</strong> <span className={`rounded-full px-2.5 py-1 text-xs ${campaign.status === 'active' ? 'bg-[#eef9ef] text-[#249a52]' : 'bg-[#f3e7d4] text-[#6a6055]'}`}>{campaign.status}</span></p>
                 <p><strong>Performance:</strong></p>
                 <div className="ml-2 text-xs">
                   <p>Impressions: {campaign.performance.impressions}</p>
@@ -479,13 +475,13 @@ export default function AdCampaignBuilder() {
               <div className="flex gap-2">
                 <Button
                   onClick={() => handleEdit(campaign)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm"
+                  variant="secondary"
                 >
                   Edit
                 </Button>
                 <Button
                   onClick={() => handleDelete(campaign._id)}
-                  className="flex-1 bg-red-600 hover:bg-red-700 text-white text-sm"
+                  variant="danger"
                 >
                   Delete
                 </Button>
@@ -496,7 +492,7 @@ export default function AdCampaignBuilder() {
 
         {campaigns.length === 0 && !showForm && (
           <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">No campaigns yet. Create your first campaign to get started!</p>
+            <p className="text-lg text-[#6a6055]">No campaigns yet. Create your first campaign to get started!</p>
           </div>
         )}
       </div>

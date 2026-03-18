@@ -9,8 +9,8 @@ function Sidebar({ isOpen, setIsOpen }) {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: "grid" },
     { name: "New Chatbot", href: "/chatbots/new", icon: "spark" },
-    { name: "Ad Campaigns", href: "/campaigns", icon: "campaign" },
-    { name: "Business Prediction", href: "/predictions", icon: "chart" },
+    { name: "Campaign Lab", href: "/campaigns", icon: "campaign" },
+    { name: "Prediction Desk", href: "/predictions", icon: "chart" },
   ]
 
   const isActive = (href) => location.pathname === href || location.pathname.startsWith(`${href}/`)
@@ -51,86 +51,90 @@ function Sidebar({ isOpen, setIsOpen }) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-[#1f201d]/30 backdrop-blur-sm lg:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      <div
+      <aside
         className={`
-        fixed inset-y-0 left-0 z-50 w-72 
-        bg-[linear-gradient(180deg,_#092f33_0%,_#0d3b44_30%,_#102b39_100%)]
-        transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
-        shadow-2xl
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-      `}
+          fixed inset-y-0 left-0 z-50 w-76 transform border-r border-[#eadbc7]
+          bg-[linear-gradient(180deg,_rgba(255,251,245,0.97)_0%,_rgba(247,236,217,0.96)_100%)]
+          shadow-[0_24px_64px_rgba(71,50,19,0.1)] transition-transform duration-300 ease-in-out
+          lg:static lg:translate-x-0
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
       >
-        <div className="flex h-20 items-center gap-3 border-b border-white/10 px-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-500 shadow-lg shadow-cyan-500/30">
-            <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" />
+        <div className="flex h-22 items-center gap-3 border-b border-[#eadbc7] px-6">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1f201d] text-[#fffaf1] shadow-[0_16px_32px_rgba(31,32,29,0.18)]">
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" />
             </svg>
           </div>
           <div>
-            <h1 className="text-lg font-bold text-white">MarketMind</h1>
-            <p className="text-xs text-cyan-200/70">AI Chatbot Platform</p>
+            <h1 className="text-lg font-semibold tracking-[-0.04em] text-[#1f201d]">MarketMind</h1>
+            <p className="text-xs uppercase tracking-[0.28em] text-[#8a7b69]">Support-first AI</p>
           </div>
         </div>
 
-        <nav className="mt-6 px-4">
-          <p className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-cyan-100/50">
-            Main Menu
+        <nav className="px-4 py-6">
+          <p className="select-none px-4 text-xs font-semibold uppercase tracking-[0.28em] text-[#8a7b69]">
+            Workspace
           </p>
-          <div className="space-y-1">
+          <div className="mt-4 space-y-2">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
+                aria-current={isActive(item.href) ? "page" : undefined}
                 className={`
-                  flex items-center rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200
+                  flex select-none items-center rounded-full px-4 py-3 text-sm font-medium transition-all
+                  selection:bg-transparent selection:text-current
                   ${isActive(item.href)
-                    ? "border border-cyan-300/20 bg-gradient-to-r from-cyan-400/20 to-teal-400/10 text-white shadow-lg shadow-cyan-500/10"
-                    : "text-cyan-100/70 hover:bg-white/5 hover:text-white"
+                    ? "border border-[#cfeace] bg-[#eef9ef] text-[#1f201d] shadow-[0_16px_30px_rgba(63,196,111,0.12)]"
+                    : "text-[#544b40] hover:bg-[#fffaf1] hover:text-[#1f201d]"
                   }
                 `}
+                style={{ WebkitTapHighlightColor: "transparent" }}
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => setIsOpen(false)}
               >
-                <span className="mr-3">{renderIcon(item.icon)}</span>
-                {item.name}
+                <span className="mr-3 shrink-0 text-current">{renderIcon(item.icon)}</span>
+                <span className="text-current">{item.name}</span>
               </Link>
             ))}
           </div>
         </nav>
 
-        <div className="mx-4 mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-cyan-50">
-          <p className="text-xs uppercase tracking-[0.24em] text-cyan-200/60">What&apos;s New</p>
-          <h2 className="mt-2 text-sm font-semibold">Real-time assistant delivery</h2>
-          <p className="mt-2 text-sm text-cyan-100/70">
-            Build a bot, test integrations, then stream replies live with token and usage tracking.
+        <div className="mx-4 rounded-[1.8rem] border border-[#dfeede] bg-[linear-gradient(180deg,_#eef9ef_0%,_#dff5e3_100%)] p-5 text-[#1f201d]">
+          <p className="text-xs uppercase tracking-[0.28em] text-[#249a52]">Studio note</p>
+          <h2 className="mt-2 text-lg font-semibold tracking-[-0.04em]">Design chatbots around real business actions</h2>
+          <p className="mt-2 text-sm leading-6 text-[#4f473d]">
+            Shape the prompt, lead flow, escalation path, and integrations so every conversation feels like part of your company.
           </p>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-white/10 p-4">
+        <div className="absolute bottom-0 left-0 right-0 border-t border-[#eadbc7] p-4">
           {user && (
-            <div className="mb-2 flex items-center gap-3 rounded-xl bg-white/5 px-4 py-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 font-semibold text-white">
+            <div className="mb-3 flex items-center gap-3 rounded-[1.5rem] bg-[#fffaf1] px-4 py-3 shadow-[0_14px_30px_rgba(77,56,24,0.08)]">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1f201d] font-semibold text-[#fffaf1]">
                 {user.firstName?.[0] || user.email?.[0]?.toUpperCase() || "U"}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-white">{user.name || "User"}</p>
-                <p className="truncate text-xs text-cyan-200/70">{user.email || "user@example.com"}</p>
+                <p className="truncate text-sm font-semibold text-[#1f201d]">{user.name || "Workspace user"}</p>
+                <p className="truncate text-xs text-[#7a6f61]">{user.email || "user@example.com"}</p>
               </div>
             </div>
           )}
           <button
             onClick={logout}
-            className="flex w-full items-center rounded-xl px-4 py-3 text-sm font-medium text-cyan-100/70 transition-all duration-200 hover:bg-red-500/10 hover:text-red-300"
+            className="flex w-full items-center rounded-full border border-[#dfcfbb] bg-[#fffaf1] px-4 py-3 text-sm font-medium text-[#5f564b] transition hover:bg-[#f3e7d4] hover:text-[#1f201d]"
           >
-            <span className="mr-3 text-lg">⇠</span>
-            Sign Out
+            <span className="mr-3 text-lg">↩</span>
+            Sign out
           </button>
         </div>
-      </div>
+      </aside>
     </>
   )
 }

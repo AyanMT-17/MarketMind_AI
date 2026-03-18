@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { io } from "socket.io-client"
 import { fetchRecentConversations } from "./useChatbot"
+import { getApiBaseUrl, getServerBaseUrl } from "../lib/api"
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+const apiBaseUrl = getApiBaseUrl()
+const serverBaseUrl = getServerBaseUrl()
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("authToken")
@@ -63,7 +65,7 @@ export function useChat(chatbotId) {
     const token = localStorage.getItem("authToken")
     if (!chatbotId || !token) return undefined
 
-    const socket = io(apiBaseUrl, {
+    const socket = io(serverBaseUrl, {
       auth: {
         token,
       },
@@ -107,7 +109,7 @@ export function useChat(chatbotId) {
     if (!nextConversationId) return
 
     setError("")
-    const response = await fetch(`${apiBaseUrl}/api/conversations/${nextConversationId}`, {
+    const response = await fetch(`${apiBaseUrl}/conversations/${nextConversationId}`, {
       headers: getAuthHeaders(),
     })
     const data = await response.json()
@@ -159,7 +161,7 @@ export function useChat(chatbotId) {
         return
       }
 
-      const response = await fetch(`${apiBaseUrl}/api/chat/${chatbotId}/message`, {
+      const response = await fetch(`${apiBaseUrl}/chat/${chatbotId}/message`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({

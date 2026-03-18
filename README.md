@@ -1,77 +1,71 @@
 # MarketMind AI
 
-MarketMind AI is a comprehensive all-in-one marketing platform for small businesses, combining AI-powered chatbots with ad campaign management and business intelligence features.
+MarketMind AI is a business-focused AI chatbot platform that helps teams build custom assistants for support, lead capture, customer engagement, and business automation.
 
-## Current Product Scope
+## What It Does
+- Create and manage multiple business chatbots with custom prompts, model settings, and welcome flows.
+- Connect REST APIs and webhooks so chatbots can respond using real business data.
+- Support real-time chat through Socket.IO with SSE fallback.
+- Capture business signals such as lead intent, escalation triggers, token usage, and top customer questions.
+- Provide analytics for conversations, messages, usage, leads captured, and escalations triggered.
 
-### Core Features
-- Authentication with JWT-based login and registration
-- Chatbot CRUD with prompt, model, and rate-limit settings
-- REST/webhook integration management
-- Server-sent event chat streaming
-- WebSocket chat transport with Socket.IO
-- Conversation history and export
-- Usage analytics and top-question reporting
+## Business Use Cases
+- Customer support assistants
+- Sales qualification bots
+- Demo booking assistants
+- FAQ and product-information bots
+- Internal business help assistants connected to existing APIs
 
-### Marketing & Analytics Features (v2.1+)
-- **Ad Campaign Management**: Create and manage social media ad campaigns across Facebook, Google, Instagram, LinkedIn, TikTok, and Twitter
-- **Campaign Performance Tracking**: Monitor impressions, clicks, conversions, CTR, CPC, CPA, and ROI in real-time
-- **Business Metrics Management**: Upload quarterly sales and profit data via CSV or manual entry
-- **AI-Powered Business Prediction**: Generate detailed forecasts using Groq AI analysis of historical business data
-- **Advanced Analytics**: Identify trends, risks, opportunities, and receive strategic recommendations
-
-## Stack
+## Tech Stack
 - Frontend: React, Vite, Tailwind CSS, Recharts
 - Backend: Node.js, Express, Mongoose
 - Database: MongoDB
 - AI provider: Groq
+- Real-time transport: Socket.IO and Server-Sent Events
 
 ## Project Structure
 ```text
 MarketMind_AI/
 ├── client/
-│   └── src/
-│       ├── components/
-│       ├── contexts/
-│       ├── hooks/
-│       └── pages/
-│           ├── AdCampaignBuilder.jsx      [NEW]
-│           ├── BusinessPrediction.jsx     [NEW]
-│           └── ...
+│   ├── src/
+│   │   ├── components/
+│   │   ├── contexts/
+│   │   ├── hooks/
+│   │   └── pages/
 ├── server/
-│   ├── database.js                        [UPDATED]
-│   ├── services.js                        [UPDATED]
-│   └── server.js                          [UPDATED]
-├── ARCHITECTURE.md
+│   ├── database.js
+│   ├── services.js
+│   ├── server.js
+│   └── test/
 ├── API_DOCUMENTATION.md
-├── NEW_FEATURES.md                        [NEW]
-└── SETUP_GUIDE.md
+├── ARCHITECTURE.md
+├── DEVELOPER_GUIDE.md
+├── DEPLOYMENT.md
+├── SETUP_GUIDE.md
+└── STATUS_REPORT.md
 ```
 
 ## Quick Start
-See [SETUP_GUIDE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/SETUP_GUIDE.md) for the full setup.
+1. Install dependencies in `server/` and `client/`.
+2. Copy `server/.env.example` to `server/.env`.
+3. Copy `client/.env.example` to `client/.env`.
+4. Set `MONGODB_URI`, `JWT_SECRET`, and `GROQ_API_KEY` in the backend env file.
+5. Run the backend with `npm run dev` inside `server/`.
+6. Run the frontend with `npm run dev` inside `client/`.
 
-Basic local flow:
-1. Install backend dependencies in `server/`.
-2. Install frontend dependencies in `client/`.
-3. Create backend `.env` values for `MONGODB_URI`, `JWT_SECRET`, `GROQ_API_KEY`, and `CLIENT_URL`.
-4. Set `VITE_API_BASE_URL` in `client/.env`.
-5. Run the backend and frontend dev servers.
+## Verification
+- Backend automated tests pass.
+- Frontend lint passes.
+- Frontend production build passes.
 
 ## Documentation
-- Architecture: [ARCHITECTURE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/ARCHITECTURE.md)
-- API reference: [API_DOCUMENTATION.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/API_DOCUMENTATION.md)
-- New Features Guide: [NEW_FEATURES.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/NEW_FEATURES.md)
-- Setup: [SETUP_GUIDE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/SETUP_GUIDE.md)
-- Deployment: [DEPLOYMENT.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/DEPLOYMENT.md)
-- Current status: [STATUS_REPORT.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/STATUS_REPORT.md)
+- [SETUP_GUIDE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/SETUP_GUIDE.md)
+- [API_DOCUMENTATION.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/API_DOCUMENTATION.md)
+- [ARCHITECTURE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/ARCHITECTURE.md)
+- [DEVELOPER_GUIDE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/DEVELOPER_GUIDE.md)
+- [DEPLOYMENT.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/DEPLOYMENT.md)
+- [STATUS_REPORT.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/STATUS_REPORT.md)
 
-## Status
-Implemented:
-- Backend chatbot platform rewrite
-- Frontend chatbot workspace rewrite
-- Lint-clean client build
-
-Still to do:
-- Full end-to-end runtime verification against real services
-- Production deployment hardening and monitoring
+## Current Status
+- Core implementation is done from the codebase side.
+- Remaining work is mainly live-environment rollout, real credential validation, and production infrastructure setup.

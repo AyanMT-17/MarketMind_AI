@@ -29,10 +29,10 @@ function PublicRoute({ children }) {
 
 function RouteFallback() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(13,148,136,0.08),_transparent_30%),linear-gradient(180deg,_#f5fbfa_0%,_#eef6fb_100%)]">
+    <div className="auth-background flex min-h-screen items-center justify-center">
       <div className="text-center">
         <LoadingSpinner size="lg" />
-        <p className="mt-4 text-sm text-slate-500">Loading workspace...</p>
+        <p className="mt-4 text-sm text-[#6a6055]">Loading workspace...</p>
       </div>
     </div>
   )
