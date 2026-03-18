@@ -9,6 +9,7 @@ import "./App.css"
 
 const Login = lazy(() => import("./pages/Login"))
 const Register = lazy(() => import("./pages/Register"))
+const Landing = lazy(() => import("./pages/Landing"))
 const Dashboard = lazy(() => import("./pages/Dashboard"))
 const ChatbotBuilder = lazy(() => import("./pages/ChatbotBuilder"))
 const ChatInterface = lazy(() => import("./pages/ChatInterface"))
@@ -64,9 +65,9 @@ function App() {
                 <Route
                   path="/"
                   element={
-                    <ProtectedRoute>
-                      <Navigate to="/dashboard" />
-                    </ProtectedRoute>
+                    <PublicRoute>
+                      <Landing />
+                    </PublicRoute>
                   }
                 />
                 <Route
