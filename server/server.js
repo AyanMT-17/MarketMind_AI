@@ -1,4 +1,3 @@
-import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -887,8 +886,7 @@ export const createApp = () => {
 
 export const createServer = () => {
   const app = createApp();
-  const httpServer = http.createServer(app);
-  const io = new SocketIOServer(httpServer, {
+  const io = new SocketIOServer({
     cors: {
       origin: buildAllowedOrigins(),
       credentials: true
@@ -896,21 +894,23 @@ export const createServer = () => {
   });
 
   configureSocketServer(io);
-  return { app, httpServer, io };
+  return { app, io };
 };
 
 export const startServer = async () => {
   await connectDB();
 
-  const { httpServer } = createServer();
+  const { app, io } = createServer();
   const port = process.env.PORT || 5000;
 
   return new Promise((resolve) => {
-    const serverInstance = httpServer.listen(port, () => {
+    const serverInstance = app.listen(port, () => {
       console.log(`Server running on port ${port}`);
       console.log(`Health check available at http://localhost:${port}/api/health`);
       resolve(serverInstance);
     });
+
+    io.attach(serverInstance);
   });
 };
 
