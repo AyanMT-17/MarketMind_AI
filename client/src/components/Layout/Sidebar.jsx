@@ -9,6 +9,7 @@ function Sidebar({ isOpen, setIsOpen }) {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: "grid" },
     { name: "New Chatbot", href: "/chatbots/new", icon: "spark" },
+    { name: "Agent Hub", href: "/agents", icon: "agents" },
     { name: "Campaign Lab", href: "/campaigns", icon: "campaign" },
     { name: "Prediction Desk", href: "/predictions", icon: "chart" },
   ]
@@ -28,6 +29,14 @@ function Sidebar({ isOpen, setIsOpen }) {
       return (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      )
+    }
+
+    if (icon === "agents") {
+      return (
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5V9l-5 11zM2 20h5l5-11H7L2 20zm7 0h6l3-7H12l-3 7zm1-11h4l2-5h-4l-2 5z" />
         </svg>
       )
     }

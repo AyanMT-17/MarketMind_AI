@@ -294,6 +294,155 @@ test('streams chat over socket.io', async () => {
 });
 
 test('legacy campaign routes are no longer mounted', async () => {
-  const response = await requestAgent.get('/api/campaigns');
-  assert.equal(response.statusCode, 404);
+  await User.deleteMany({});
+  const token = await registerAndLogin();
+
+  const response = await requestAgent
+    .get('/api/campaigns')
+    .set('Authorization', `Bearer ${token}`);
+
+  assert.equal(response.statusCode, 200);
+  assert.deepEqual(response.body.campaigns, []);
+});
+
+test('lists built-in agents, saves email settings, creates drafts, and sends approved emails', async () => {
+  await User.deleteMany({});
+  const token = await registerAndLogin();
+
+  const chatbotResponse = await requestAgent
+    .post('/api/chatbots')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ name: 'Agent Bot', businessProfile: { businessName: 'Acme AI' } });
+
+  const catalogResponse = await requestAgent
+    .get('/api/agents')
+    .set('Authorization', `Bearer ${token}`);
+
+  assert.equal(catalogResponse.statusCode, 200);
+  assert.equal(catalogResponse.body.agents.length, 4);
+
+  const settingsResponse = await requestAgent
+    .put('/api/email-settings')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      providerType: 'resend',
+      senderName: 'Acme Sales',
+      senderEmail: 'sales@acme.test',
+      resendApiKey: 'test_resend_key',
+      enabled: true
+    });
+
+  assert.equal(settingsResponse.statusCode, 200);
+  assert.equal(settingsResponse.body.settings.enabled, true);
+
+  const runResponse = await requestAgent
+    .post('/api/agents/run')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      agentType: 'email',
+      recipient: 'lead@example.com',
+      prompt: 'Draft a pricing follow-up email.',
+      chatbotId: chatbotResponse.body.chatbot._id
+    });
+
+  assert.equal(runResponse.statusCode, 201);
+  assert.equal(runResponse.body.run.agentType, 'email');
+  assert.equal(runResponse.body.run.status, 'needs_approval');
+  assert.ok(runResponse.body.run.output.subject);
+
+  const approveResponse = await requestAgent
+    .post(`/api/agents/runs/${runResponse.body.run.id}/approve`)
+    .set('Authorization', `Bearer ${token}`)
+    .send({});
+
+  assert.equal(approveResponse.statusCode, 200);
+  assert.equal(approveResponse.body.run.status, 'sent');
+  assert.equal(approveResponse.body.run.output.delivery.provider, 'resend');
+});
+
+test('runs sales, analytics, and forecast agents with owned context', async () => {
+  await User.deleteMany({});
+  const token = await registerAndLogin();
+
+  const chatbotResponse = await requestAgent
+    .post('/api/chatbots')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      name: 'Revenue Bot',
+      status: 'active',
+      businessProfile: {
+        businessName: 'Acme Growth',
+        targetAudience: 'Operations leaders',
+        offerings: ['Growth plan', 'Enterprise plan']
+      },
+      automation: {
+        primaryCallToAction: 'Book a strategy call'
+      }
+    });
+
+  const analyticsSeedResponse = await requestAgent
+    .post(`/api/chat/${chatbotResponse.body.chatbot._id}/message`)
+    .set('Authorization', `Bearer ${token}`)
+    .send({ message: 'Can you explain your enterprise pricing?' });
+
+  assert.equal(analyticsSeedResponse.statusCode, 200);
+
+  const salesRun = await requestAgent
+    .post('/api/agents/run')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      agentType: 'sales_recommendation',
+      chatbotId: chatbotResponse.body.chatbot._id,
+      prompt: 'Recommend the best offer for a mid-market lead.'
+    });
+
+  assert.equal(salesRun.statusCode, 201);
+  assert.equal(salesRun.body.run.status, 'completed');
+  assert.ok(salesRun.body.run.output.recommendedOffering);
+
+  const analyticsRun = await requestAgent
+    .post('/api/agents/run')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      agentType: 'analytics_insight',
+      chatbotId: chatbotResponse.body.chatbot._id
+    });
+
+  assert.equal(analyticsRun.statusCode, 201);
+  assert.equal(analyticsRun.body.run.status, 'completed');
+  assert.ok(analyticsRun.body.run.output.summary);
+
+  const metricsResponse = await requestAgent
+    .post('/api/business-metrics')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      businessName: 'Acme Growth',
+      metrics: [
+        { quarter: 'Q1', year: 2025, revenue: 100000, profit: 20000, customers: 120 },
+        { quarter: 'Q2', year: 2025, revenue: 120000, profit: 26000, customers: 145 }
+      ]
+    });
+
+  assert.equal(metricsResponse.statusCode, 201);
+
+  const forecastRun = await requestAgent
+    .post('/api/agents/run')
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      agentType: 'forecast',
+      businessMetricsId: metricsResponse.body.metrics._id,
+      predictionPeriod: 'next_quarter',
+      prompt: 'Focus on revenue and margin outlook.'
+    });
+
+  assert.equal(forecastRun.statusCode, 201);
+  assert.equal(forecastRun.body.run.status, 'completed');
+  assert.ok(forecastRun.body.run.output.summary);
+
+  const historyResponse = await requestAgent
+    .get('/api/agents/history')
+    .set('Authorization', `Bearer ${token}`);
+
+  assert.equal(historyResponse.statusCode, 200);
+  assert.ok(historyResponse.body.runs.length >= 3);
 });

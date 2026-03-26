@@ -75,6 +75,9 @@ function Analytics() {
           <p className="mt-2 text-[#6a6055]">Monitor conversation volume, token usage, API calls, leads captured, and repeated user questions.</p>
         </div>
         <div className="flex gap-3">
+          <Link to={`/agents?agent=analytics_insight&chatbotId=${chatbotId}`}>
+            <Button variant="outline">Open insight agent</Button>
+          </Link>
           <Link to={`/chatbots/${chatbotId}/chat`}>
             <Button variant="secondary">Back to chat</Button>
           </Link>

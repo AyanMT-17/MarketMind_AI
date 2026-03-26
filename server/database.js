@@ -548,6 +548,110 @@ const BusinessPredictionSchema = new mongoose.Schema({
 BusinessPredictionSchema.index({ userId: 1, createdAt: -1 });
 BusinessPredictionSchema.index({ businessMetricsId: 1 });
 
+const EmailSettingsSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true
+  },
+  providerType: {
+    type: String,
+    enum: ['resend', 'smtp'],
+    default: 'resend'
+  },
+  senderName: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  senderEmail: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  resendApiKey: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  smtp: {
+    host: { type: String, trim: true, default: '' },
+    port: { type: Number, default: 587 },
+    username: { type: String, trim: true, default: '' },
+    password: { type: String, trim: true, default: '' },
+    secure: { type: Boolean, default: false }
+  },
+  enabled: {
+    type: Boolean,
+    default: false
+  }
+}, {
+  timestamps: true
+});
+
+const AgentRunSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  agentType: {
+    type: String,
+    enum: ['email', 'sales_recommendation', 'analytics_insight', 'forecast'],
+    required: true
+  },
+  chatbotId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Chatbot',
+    default: null
+  },
+  conversationId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Conversation',
+    default: null
+  },
+  businessMetricsId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BusinessMetrics',
+    default: null
+  },
+  predictionId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'BusinessPrediction',
+    default: null
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'needs_approval', 'approved', 'sent', 'failed'],
+    default: 'pending'
+  },
+  input: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  output: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  approval: {
+    required: { type: Boolean, default: false },
+    approvedAt: { type: Date, default: null },
+    approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
+  },
+  error: {
+    message: { type: String, trim: true, default: '' },
+    code: { type: String, trim: true, default: '' },
+    details: { type: mongoose.Schema.Types.Mixed, default: null }
+  }
+}, {
+  timestamps: true
+});
+
+AgentRunSchema.index({ userId: 1, createdAt: -1 });
+AgentRunSchema.index({ userId: 1, agentType: 1, createdAt: -1 });
+AgentRunSchema.index({ userId: 1, chatbotId: 1, createdAt: -1 });
+
 export const User = mongoose.model('User', UserSchema);
 export const Chatbot = mongoose.model('Chatbot', ChatbotSchema);
 export const Conversation = mongoose.model('Conversation', ConversationSchema);
@@ -556,3 +660,5 @@ export const Analytics = mongoose.model('Analytics', AnalyticsSchema);
 export const AdCampaign = mongoose.model('AdCampaign', AdCampaignSchema);
 export const BusinessMetrics = mongoose.model('BusinessMetrics', BusinessMetricsSchema);
 export const BusinessPrediction = mongoose.model('BusinessPrediction', BusinessPredictionSchema);
+export const EmailSettings = mongoose.model('EmailSettings', EmailSettingsSchema);
+export const AgentRun = mongoose.model('AgentRun', AgentRunSchema);

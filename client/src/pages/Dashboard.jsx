@@ -69,6 +69,9 @@ function Dashboard() {
               <Link to="/chatbots/new">
                 <Button size="lg">Create business bot</Button>
               </Link>
+              <Link to="/agents">
+                <Button variant="secondary" size="lg">Open agent hub</Button>
+              </Link>
               <Button variant="secondary" size="lg" onClick={refresh}>
                 Refresh workspace
               </Button>
@@ -179,6 +182,9 @@ function Dashboard() {
                 <div className="flex flex-wrap gap-3">
                   <Link to={`/chatbots/${chatbot._id}/chat`}>
                     <Button>Open chat</Button>
+                  </Link>
+                  <Link to={`/agents?agent=sales_recommendation&chatbotId=${chatbot._id}`}>
+                    <Button variant="secondary">Sales agent</Button>
                   </Link>
                   <Link to={`/chatbots/${chatbot._id}/edit`}>
                     <Button variant="outline">Edit builder</Button>

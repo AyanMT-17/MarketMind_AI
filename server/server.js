@@ -1,3 +1,4 @@
+import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
@@ -15,7 +16,9 @@ import {
   validationService,
   adCampaignService,
   businessMetricsService,
-  businessPredictionService
+  businessPredictionService,
+  emailSettingsService,
+  agentService
 } from './services.js';
 
 dotenv.config();
@@ -677,6 +680,84 @@ export const createApp = () => {
   });
 }));
 
+  app.get('/api/agents', authService.authenticate, asyncHandler(async (req, res) => {
+    const emailSettings = await emailSettingsService.getSettings(req.user._id);
+    res.json({
+      success: true,
+      agents: agentService.getAgentCatalog(),
+      emailSettings: emailSettingsService.sanitizeForClient(emailSettings)
+    });
+  }));
+
+  app.get('/api/agents/history', authService.authenticate, asyncHandler(async (req, res) => {
+    const runs = await agentService.listRuns(req.user._id, {
+      agentType: req.query.agentType || '',
+      chatbotId: req.query.chatbotId || ''
+    });
+
+    res.json({
+      success: true,
+      runs: runs.map((run) => agentService.buildRunResponse(run))
+    });
+  }));
+
+  app.post('/api/agents/run', authService.authenticate, asyncHandler(async (req, res) => {
+    const run = await agentService.runAgent(req.user._id, req.body || {});
+    res.status(201).json({
+      success: true,
+      run: agentService.buildRunResponse(run)
+    });
+  }));
+
+  app.get('/api/agents/runs/:id', authService.authenticate, asyncHandler(async (req, res) => {
+    const run = await agentService.getRun(req.user._id, req.params.id);
+    if (!run) {
+      return res.status(404).json({ success: false, message: 'Agent run not found' });
+    }
+
+    res.json({
+      success: true,
+      run: agentService.buildRunResponse(run)
+    });
+  }));
+
+  app.post('/api/agents/runs/:id/approve', authService.authenticate, asyncHandler(async (req, res) => {
+    const run = await agentService.approveEmailRun(req.user._id, req.params.id);
+    if (!run) {
+      return res.status(404).json({ success: false, message: 'Agent run not found' });
+    }
+
+    res.json({
+      success: true,
+      run: agentService.buildRunResponse(run)
+    });
+  }));
+
+  app.get('/api/email-settings', authService.authenticate, asyncHandler(async (req, res) => {
+    const settings = await emailSettingsService.getSettings(req.user._id);
+    res.json({
+      success: true,
+      settings: emailSettingsService.sanitizeForClient(settings)
+    });
+  }));
+
+  app.put('/api/email-settings', authService.authenticate, asyncHandler(async (req, res) => {
+    const settings = await emailSettingsService.updateSettings(req.user._id, req.body || {});
+    res.json({
+      success: true,
+      message: 'Email settings updated successfully',
+      settings: emailSettingsService.sanitizeForClient(settings)
+    });
+  }));
+
+  app.post('/api/email-settings/test', authService.authenticate, asyncHandler(async (req, res) => {
+    const result = await emailSettingsService.testSettings(req.user._id);
+    res.json({
+      success: result.success,
+      message: result.message
+    });
+  }));
+
   // Ad Campaign Routes
   app.post('/api/campaigns', authService.authenticate, asyncHandler(async (req, res) => {
     const campaign = await adCampaignService.createCampaign(req.user._id, req.body);
@@ -886,6 +967,7 @@ export const createApp = () => {
 
 export const createServer = () => {
   const app = createApp();
+  const httpServer = http.createServer(app);
   const io = new SocketIOServer({
     cors: {
       origin: buildAllowedOrigins(),
@@ -894,23 +976,22 @@ export const createServer = () => {
   });
 
   configureSocketServer(io);
-  return { app, io };
+  io.attach(httpServer);
+  return { app, io, httpServer };
 };
 
 export const startServer = async () => {
   await connectDB();
 
-  const { app, io } = createServer();
+  const { httpServer } = createServer();
   const port = process.env.PORT || 5000;
 
   return new Promise((resolve) => {
-    const serverInstance = app.listen(port, () => {
+    httpServer.listen(port, () => {
       console.log(`Server running on port ${port}`);
       console.log(`Health check available at http://localhost:${port}/api/health`);
-      resolve(serverInstance);
+      resolve(httpServer);
     });
-
-    io.attach(serverInstance);
   });
 };
 

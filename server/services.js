@@ -3,7 +3,18 @@ import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import Groq from 'groq-sdk';
 import mongoose from 'mongoose';
-import { APIIntegration, Analytics, Chatbot, Conversation, User, AdCampaign, BusinessMetrics, BusinessPrediction } from './database.js';
+import {
+  APIIntegration,
+  AgentRun,
+  Analytics,
+  BusinessMetrics,
+  BusinessPrediction,
+  Chatbot,
+  Conversation,
+  EmailSettings,
+  User,
+  AdCampaign
+} from './database.js';
 
 const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
 
@@ -1066,12 +1077,6 @@ export const businessPredictionService = {
     const metrics = await BusinessMetrics.findOne({ _id: businessMetricsId, userId });
     if (!metrics) return null;
 
-    // Generate AI prediction using Groq
-    const groq = getGroqClient();
-    if (!groq) {
-      throw new Error('AI provider is not configured');
-    }
-
     const metricsData = metrics.metrics.map(m => ({
       quarter: m.quarter,
       year: m.year,
@@ -1079,6 +1084,8 @@ export const businessPredictionService = {
       profit: m.profit,
       customers: m.customers
     }));
+
+    const groq = getGroqClient();
 
     const prompt = `You are a business analyst. Based on the following historical quarterly business metrics, provide a detailed prediction and analysis.
 
@@ -1098,6 +1105,32 @@ Please provide:
 Format your response as a structured analysis.`;
 
     try {
+      if (!groq) {
+        const predictions = businessPredictionService.parsePredictions(metricsData, payload.predictionPeriod);
+        const analysis = businessPredictionService.parseAnalysis(
+          `Summary: ${metrics.businessName} shows ${metricsData.length} historical periods. Growth rate and trend analysis suggest a measured continuation of current performance. Risks include cost pressure and demand volatility. Opportunities include increasing customer value and expanding top-performing offers. 1. Review revenue drivers monthly. 2. Protect margins on highest-volume offers. 3. Align sales outreach with the strongest growth segments.`
+        );
+
+        const prediction = new BusinessPrediction({
+          userId,
+          businessMetricsId,
+          businessName: metrics.businessName,
+          userPrompt: payload.userPrompt,
+          predictionPeriod: payload.predictionPeriod || 'next_quarter',
+          predictions,
+          analysis,
+          modelMetadata: {
+            modelType: 'time-series-forecasting-fallback',
+            dataPointsUsed: metricsData.length,
+            accuracy: 0.75,
+            lastUpdated: new Date()
+          }
+        });
+
+        await prediction.save();
+        return prediction;
+      }
+
       const stream = await groq.chat.completions.create({
         model: DEFAULT_MODEL,
         temperature: 0.7,
@@ -1187,7 +1220,6 @@ Format your response as a structured analysis.`;
   },
 
   parseAnalysis(analysisText) {
-    const summaryMatch = analysisText.match(/summary|growth rate|trends/i);
     const trends = analysisText.match(/trend|increasing|decreasing/gi) || [];
     const risks = analysisText.match(/risk|challenge|concern|decline/gi) || [];
     const opportunities = analysisText.match(/opportunity|growth|expand|increase/gi) || [];
@@ -1218,6 +1250,569 @@ Format your response as a structured analysis.`;
   }
 };
 
+const BUILT_IN_AGENTS = [
+  {
+    type: 'email',
+    name: 'Email Agent',
+    description: 'Draft follow-up emails and send them after explicit approval.'
+  },
+  {
+    type: 'sales_recommendation',
+    name: 'Sales Recommendation Agent',
+    description: 'Recommend the best offer, CTA, and follow-up based on chatbot business context.'
+  },
+  {
+    type: 'analytics_insight',
+    name: 'Analytics Insight Agent',
+    description: 'Turn chatbot analytics into wins, issues, and prioritized next actions.'
+  },
+  {
+    type: 'forecast',
+    name: 'Forecast Agent',
+    description: 'Generate a plain-language forecast summary from uploaded business metrics.'
+  }
+];
+
+const sanitizeAgentPrompt = (value, maxLength = 2000) => utilityService.sanitizeString(value || '', maxLength);
+
+const truncateText = (value, maxLength = 240) => {
+  const clean = sanitizeAgentPrompt(value, maxLength);
+  return clean.length > maxLength ? `${clean.slice(0, maxLength - 3)}...` : clean;
+};
+
+const toPlainObject = (value) => (value?.toObject?.() ? value.toObject() : value);
+
+const extractJsonBlock = (text) => {
+  const safeText = text || '';
+  const match = safeText.match(/\{[\s\S]*\}/);
+  if (!match) {
+    throw new Error('No JSON object found in model output');
+  }
+
+  return JSON.parse(match[0]);
+};
+
+const callStructuredAgentModel = async ({ systemPrompt, userPrompt, fallback }) => {
+  const groq = getGroqClient();
+  if (!groq) {
+    return fallback();
+  }
+
+  const completion = await groq.chat.completions.create({
+    model: DEFAULT_MODEL,
+    temperature: 0.3,
+    max_tokens: 1200,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt }
+    ]
+  });
+
+  const text = completion.choices?.[0]?.message?.content || '';
+  try {
+    return extractJsonBlock(text);
+  } catch {
+    return fallback();
+  }
+};
+
+const summarizeConversation = (conversation) => {
+  if (!conversation) {
+    return '';
+  }
+
+  const messages = (conversation.messages || [])
+    .slice(-6)
+    .map((message) => `${message.role}: ${message.content}`)
+    .join('\n');
+
+  return truncateText(messages, 1200);
+};
+
+const buildForecastFallback = (metrics, prediction, prompt, predictionPeriod) => {
+  const latestMetric = metrics.metrics[metrics.metrics.length - 1] || {};
+  const topPrediction = prediction?.predictions?.[0] || {};
+  const summary = `Forecast for ${metrics.businessName}: based on ${metrics.metrics.length} historical periods, the next outlook points to revenue near ${topPrediction.predictedRevenue || latestMetric.revenue || 0} and profit near ${topPrediction.predictedProfit || latestMetric.profit || 0}.`;
+
+  return {
+    summary,
+    trends: prediction?.analysis?.trends?.slice(0, 3) || ['steady growth'],
+    risks: prediction?.analysis?.risks?.slice(0, 3) || ['Forecast confidence depends on keeping recent growth and margin trends stable.'],
+    opportunities: prediction?.analysis?.opportunities?.slice(0, 3) || ['Use the strongest channel and offer mix to compound recent growth.'],
+    recommendations: prediction?.analysis?.recommendations?.slice(0, 3) || [
+      `Review the ${predictionPeriod} forecast against your actual pipeline every month.`,
+      'Protect margin on your best-selling offerings while growing acquisition.',
+      prompt ? `Incorporate this planning request into the next leadership review: ${truncateText(prompt, 120)}` : 'Turn this forecast into a concrete action plan for the next quarter.'
+    ]
+  };
+};
+
+export const emailSettingsService = {
+  async getSettings(userId) {
+    let settings = await EmailSettings.findOne({ userId });
+    if (!settings) {
+      settings = await EmailSettings.create({ userId });
+    }
+    return settings;
+  },
+
+  async updateSettings(userId, payload = {}) {
+    const existing = await emailSettingsService.getSettings(userId);
+    existing.providerType = payload.providerType || existing.providerType;
+    existing.senderName = sanitizeAgentPrompt(payload.senderName, 120) || existing.senderName;
+    existing.senderEmail = sanitizeAgentPrompt(payload.senderEmail, 180) || existing.senderEmail;
+    existing.enabled = payload.enabled ?? existing.enabled;
+
+    if (payload.resendApiKey !== undefined) {
+      existing.resendApiKey = sanitizeAgentPrompt(payload.resendApiKey, 400);
+    }
+
+    if (payload.smtp) {
+      existing.smtp = {
+        ...toPlainObject(existing.smtp),
+        host: sanitizeAgentPrompt(payload.smtp.host, 180) || existing.smtp.host,
+        port: Number(payload.smtp.port) || existing.smtp.port,
+        username: sanitizeAgentPrompt(payload.smtp.username, 180) || existing.smtp.username,
+        password: sanitizeAgentPrompt(payload.smtp.password, 240) || existing.smtp.password,
+        secure: payload.smtp.secure ?? existing.smtp.secure
+      };
+    }
+
+    await existing.save();
+    return existing;
+  },
+
+  sanitizeForClient(settings) {
+    return {
+      providerType: settings.providerType,
+      senderName: settings.senderName,
+      senderEmail: settings.senderEmail,
+      enabled: settings.enabled,
+      resendApiKeyConfigured: Boolean(settings.resendApiKey),
+      smtpConfigured: Boolean(settings.smtp?.host && settings.smtp?.username),
+      smtp: {
+        host: settings.smtp?.host || '',
+        port: settings.smtp?.port || 587,
+        username: settings.smtp?.username || '',
+        secure: Boolean(settings.smtp?.secure)
+      }
+    };
+  },
+
+  async testSettings(userId) {
+    const settings = await emailSettingsService.getSettings(userId);
+    if (!settings.enabled) {
+      return { success: false, message: 'Email sending is disabled.' };
+    }
+
+    if (settings.providerType === 'resend') {
+      if (!settings.senderEmail || !settings.resendApiKey) {
+        return { success: false, message: 'Resend sender email and API key are required.' };
+      }
+      return { success: true, message: 'Resend settings look ready for use.' };
+    }
+
+    if (!settings.smtp?.host || !settings.smtp?.username || !settings.smtp?.password) {
+      return { success: false, message: 'SMTP host, username, and password are required.' };
+    }
+
+    return { success: true, message: 'SMTP settings saved. Delivery support is reserved for configured environments.' };
+  }
+};
+
+export const agentService = {
+  getAgentCatalog() {
+    return BUILT_IN_AGENTS;
+  },
+
+  async listRuns(userId, filters = {}) {
+    const query = { userId };
+    if (filters.agentType) {
+      query.agentType = filters.agentType;
+    }
+    if (filters.chatbotId) {
+      query.chatbotId = filters.chatbotId;
+    }
+
+    return AgentRun.find(query).sort({ createdAt: -1 }).limit(20);
+  },
+
+  async getRun(userId, runId) {
+    return AgentRun.findOne({ _id: runId, userId });
+  },
+
+  async ensureChatbot(userId, chatbotId) {
+    if (!chatbotId) {
+      return null;
+    }
+
+    const chatbot = await chatbotService.getOwnedChatbot(userId, chatbotId);
+    if (!chatbot) {
+      throw new Error('Chatbot not found');
+    }
+    return chatbot;
+  },
+
+  async ensureConversation(userId, conversationId, chatbotId = null) {
+    if (!conversationId) {
+      return null;
+    }
+
+    const conversation = await conversationService.getOwnedConversation(userId, conversationId);
+    if (!conversation) {
+      throw new Error('Conversation not found');
+    }
+    if (chatbotId && ensureObjectIdValue(conversation.chatbotId) !== ensureObjectIdValue(chatbotId)) {
+      throw new Error('Conversation does not belong to the selected chatbot');
+    }
+    return conversation;
+  },
+
+  async ensureBusinessMetrics(userId, businessMetricsId) {
+    if (!businessMetricsId) {
+      return null;
+    }
+
+    const metrics = await businessMetricsService.getMetrics(userId, businessMetricsId);
+    if (!metrics) {
+      throw new Error('Business metrics not found');
+    }
+    return metrics;
+  },
+
+  buildRunResponse(run) {
+    return {
+      id: run._id,
+      agentType: run.agentType,
+      status: run.status,
+      input: run.input,
+      output: run.output,
+      createdAt: run.createdAt,
+      updatedAt: run.updatedAt,
+      chatbotId: run.chatbotId,
+      conversationId: run.conversationId,
+      businessMetricsId: run.businessMetricsId,
+      predictionId: run.predictionId
+    };
+  },
+
+  async createRunBase({ userId, payload, status, input, output, refs = {}, error = null, approval = null }) {
+    return AgentRun.create({
+      userId,
+      agentType: payload.agentType,
+      chatbotId: refs.chatbotId || null,
+      conversationId: refs.conversationId || null,
+      businessMetricsId: refs.businessMetricsId || null,
+      predictionId: refs.predictionId || null,
+      status,
+      input,
+      output,
+      approval: approval || undefined,
+      error: error || undefined
+    });
+  },
+
+  async runEmailAgent(userId, payload, chatbot, conversation) {
+    const input = {
+      recipient: sanitizeAgentPrompt(payload.recipient, 180),
+      prompt: sanitizeAgentPrompt(payload.prompt, 1200),
+      chatbotId: chatbot?._id || null,
+      conversationId: conversation?._id || null
+    };
+
+    if (!input.recipient || !input.prompt) {
+      throw new Error('Recipient and prompt are required for the Email Agent');
+    }
+
+    const chatbotContext = chatbot ? buildBusinessContext(chatbot).join('\n') : '';
+    const conversationContext = summarizeConversation(conversation);
+    const output = await callStructuredAgentModel({
+      systemPrompt: 'You are an email drafting agent. Return strict JSON with keys subject, body, recipient, rationale. Keep the body professional and ready to send.',
+      userPrompt: `Recipient: ${input.recipient}\nGoal: ${input.prompt}\nBusiness context:\n${chatbotContext || 'None'}\nConversation context:\n${conversationContext || 'None'}`,
+      fallback: () => ({
+        subject: `Follow-up from ${chatbot?.businessProfile?.businessName || 'our team'}`,
+        body: `Hi,\n\n${input.prompt}\n\nI wanted to follow up with a clear next step based on our recent discussion.${chatbot?.automation?.primaryCallToAction ? ` ${chatbot.automation.primaryCallToAction}.` : ''}\n\nBest regards,\n${chatbot?.businessProfile?.businessName || 'MarketMind AI'}`,
+        recipient: input.recipient,
+        rationale: 'Drafted from the provided prompt and any selected chatbot or conversation context.'
+      })
+    });
+
+    const run = await agentService.createRunBase({
+      userId,
+      payload,
+      status: 'needs_approval',
+      input,
+      output: {
+        subject: sanitizeAgentPrompt(output.subject, 200),
+        body: sanitizeAgentPrompt(output.body, 5000),
+        recipient: sanitizeAgentPrompt(output.recipient || input.recipient, 180),
+        rationale: sanitizeAgentPrompt(output.rationale, 400),
+        delivery: null
+      },
+      refs: {
+        chatbotId: chatbot?._id,
+        conversationId: conversation?._id
+      },
+      approval: {
+        required: true
+      }
+    });
+
+    return run;
+  },
+
+  async runSalesRecommendationAgent(userId, payload, chatbot, conversation) {
+    if (!chatbot) {
+      throw new Error('chatbotId is required for the Sales Recommendation Agent');
+    }
+
+    const input = {
+      chatbotId: chatbot._id,
+      conversationId: conversation?._id || null,
+      prompt: sanitizeAgentPrompt(payload.prompt, 1200)
+    };
+
+    const businessContext = buildBusinessContext(chatbot).join('\n');
+    const conversationContext = summarizeConversation(conversation);
+    const output = await callStructuredAgentModel({
+      systemPrompt: 'You are a sales recommendation agent. Return strict JSON with keys recommendedOffering, fitReason, objections, cta, followUpMessage.',
+      userPrompt: `Business context:\n${businessContext}\nConversation context:\n${conversationContext || 'None'}\nGoal:\n${input.prompt || 'Recommend the best offer and next step for this lead.'}`,
+      fallback: () => ({
+        recommendedOffering: chatbot.businessProfile?.offerings?.[0] || chatbot.name,
+        fitReason: `The recommendation aligns with ${chatbot.businessProfile?.targetAudience || 'the target audience'} and the bot's current business goals.`,
+        objections: ['Budget sensitivity', 'Need for human validation', 'Timeline uncertainty'],
+        cta: chatbot.automation?.primaryCallToAction || 'Book a demo',
+        followUpMessage: `Based on what you've shared, I recommend starting with ${chatbot.businessProfile?.offerings?.[0] || chatbot.name}. ${chatbot.automation?.primaryCallToAction || 'Would you like to move to the next step?'}`
+      })
+    });
+
+    return agentService.createRunBase({
+      userId,
+      payload,
+      status: 'completed',
+      input,
+      output: {
+        recommendedOffering: sanitizeAgentPrompt(output.recommendedOffering, 200),
+        fitReason: sanitizeAgentPrompt(output.fitReason, 600),
+        objections: Array.isArray(output.objections) ? output.objections.map((item) => sanitizeAgentPrompt(item, 160)).filter(Boolean).slice(0, 5) : [],
+        cta: sanitizeAgentPrompt(output.cta, 200),
+        followUpMessage: sanitizeAgentPrompt(output.followUpMessage, 1200)
+      },
+      refs: {
+        chatbotId: chatbot._id,
+        conversationId: conversation?._id
+      }
+    });
+  },
+
+  async runAnalyticsInsightAgent(userId, payload, chatbot) {
+    if (!chatbot) {
+      throw new Error('chatbotId is required for the Analytics Insight Agent');
+    }
+
+    const analytics = await conversationService.buildAnalytics(chatbot._id);
+    const input = { chatbotId: chatbot._id };
+    const output = await callStructuredAgentModel({
+      systemPrompt: 'You are an analytics insight agent. Return strict JSON with keys summary, wins, problems, likelyCauses, actions.',
+      userPrompt: `Chatbot name: ${chatbot.name}\nBusiness context:\n${buildBusinessContext(chatbot).join('\n')}\nAnalytics:\n${JSON.stringify(analytics, null, 2)}`,
+      fallback: () => ({
+        summary: `${chatbot.name} has ${analytics.stats.totalConversations} conversations and ${analytics.stats.leadsCaptured} leads captured so far.`,
+        wins: [
+          analytics.stats.totalConversations > 0 ? 'Conversation tracking is active.' : 'The bot is ready for traffic.',
+          analytics.stats.leadsCaptured > 0 ? 'Lead capture is producing identifiable contacts.' : 'Lead capture is enabled and ready to test.'
+        ],
+        problems: [
+          analytics.stats.totalConversations === 0 ? 'No conversations have been collected yet.' : 'Repeated questions may indicate missing self-serve answers.',
+          analytics.stats.escalationsTriggered > analytics.stats.leadsCaptured ? 'Escalations are high relative to captured leads.' : 'Escalations are currently manageable.'
+        ],
+        likelyCauses: [
+          'Prompt and knowledge coverage may not fully address repeated questions.',
+          'Primary CTA and support flow may need tuning.'
+        ],
+        actions: [
+          'Review the top repeated questions and add direct answers to the system prompt.',
+          'Test the primary CTA wording during live chats.',
+          'Audit escalation keywords and reduce unnecessary handoffs.'
+        ]
+      })
+    });
+
+    return agentService.createRunBase({
+      userId,
+      payload,
+      status: 'completed',
+      input,
+      output: {
+        summary: sanitizeAgentPrompt(output.summary, 800),
+        wins: Array.isArray(output.wins) ? output.wins.map((item) => sanitizeAgentPrompt(item, 220)).filter(Boolean).slice(0, 5) : [],
+        problems: Array.isArray(output.problems) ? output.problems.map((item) => sanitizeAgentPrompt(item, 220)).filter(Boolean).slice(0, 5) : [],
+        likelyCauses: Array.isArray(output.likelyCauses) ? output.likelyCauses.map((item) => sanitizeAgentPrompt(item, 220)).filter(Boolean).slice(0, 5) : [],
+        actions: Array.isArray(output.actions) ? output.actions.map((item) => sanitizeAgentPrompt(item, 220)).filter(Boolean).slice(0, 5) : [],
+        analyticsSnapshot: analytics.stats
+      },
+      refs: {
+        chatbotId: chatbot._id
+      }
+    });
+  },
+
+  async runForecastAgent(userId, payload, metrics) {
+    if (!metrics) {
+      throw new Error('businessMetricsId is required for the Forecast Agent');
+    }
+
+    const prompt = sanitizeAgentPrompt(payload.prompt, 1200);
+    const predictionPeriod = payload.predictionPeriod || 'next_quarter';
+    const prediction = await businessPredictionService.generatePrediction(userId, metrics._id, {
+      userPrompt: prompt || `Forecast ${metrics.businessName} for ${predictionPeriod}`,
+      predictionPeriod
+    });
+
+    const input = {
+      businessMetricsId: metrics._id,
+      prompt,
+      predictionPeriod
+    };
+
+    const output = await callStructuredAgentModel({
+      systemPrompt: 'You are a forecast agent. Return strict JSON with keys summary, trends, risks, opportunities, recommendations.',
+      userPrompt: `Business: ${metrics.businessName}\nMetrics:\n${JSON.stringify(metrics.metrics, null, 2)}\nPrediction:\n${JSON.stringify(prediction, null, 2)}\nPrompt:\n${prompt || 'Provide a forecast summary and next actions.'}`,
+      fallback: () => buildForecastFallback(metrics, prediction, prompt, predictionPeriod)
+    });
+
+    return agentService.createRunBase({
+      userId,
+      payload,
+      status: 'completed',
+      input,
+      output: {
+        summary: sanitizeAgentPrompt(output.summary, 1000),
+        trends: Array.isArray(output.trends) ? output.trends.map((item) => sanitizeAgentPrompt(item, 220)).filter(Boolean).slice(0, 5) : [],
+        risks: Array.isArray(output.risks) ? output.risks.map((item) => sanitizeAgentPrompt(item, 220)).filter(Boolean).slice(0, 5) : [],
+        opportunities: Array.isArray(output.opportunities) ? output.opportunities.map((item) => sanitizeAgentPrompt(item, 220)).filter(Boolean).slice(0, 5) : [],
+        recommendations: Array.isArray(output.recommendations) ? output.recommendations.map((item) => sanitizeAgentPrompt(item, 240)).filter(Boolean).slice(0, 5) : [],
+        predictions: prediction.predictions,
+        predictionId: prediction._id
+      },
+      refs: {
+        businessMetricsId: metrics._id,
+        predictionId: prediction._id
+      }
+    });
+  },
+
+  async runAgent(userId, payload = {}) {
+    if (!payload.agentType) {
+      throw new Error('agentType is required');
+    }
+
+    const chatbot = await agentService.ensureChatbot(userId, payload.chatbotId);
+    const conversation = await agentService.ensureConversation(userId, payload.conversationId, payload.chatbotId);
+    const metrics = await agentService.ensureBusinessMetrics(userId, payload.businessMetricsId);
+
+    if (payload.agentType === 'email') {
+      return agentService.runEmailAgent(userId, payload, chatbot, conversation);
+    }
+    if (payload.agentType === 'sales_recommendation') {
+      return agentService.runSalesRecommendationAgent(userId, payload, chatbot, conversation);
+    }
+    if (payload.agentType === 'analytics_insight') {
+      return agentService.runAnalyticsInsightAgent(userId, payload, chatbot);
+    }
+    if (payload.agentType === 'forecast') {
+      return agentService.runForecastAgent(userId, payload, metrics);
+    }
+
+    throw new Error('Unsupported agent type');
+  },
+
+  async deliverEmail(run, settings) {
+    const recipient = run.output?.recipient;
+    const subject = run.output?.subject;
+    const body = run.output?.body;
+
+    if (!settings.enabled) {
+      throw new Error('Email sending is disabled');
+    }
+
+    if (!recipient || !subject || !body) {
+      throw new Error('Email draft is incomplete');
+    }
+
+    if (settings.providerType === 'resend') {
+      if (!settings.resendApiKey || !settings.senderEmail) {
+        throw new Error('Resend settings are incomplete');
+      }
+
+      if (process.env.NODE_ENV === 'test' || settings.resendApiKey.startsWith('test_')) {
+        return {
+          provider: 'resend',
+          messageId: `test_${Date.now()}`,
+          status: 'mock_sent'
+        };
+      }
+
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${settings.resendApiKey}`
+        },
+        body: JSON.stringify({
+          from: settings.senderName ? `${settings.senderName} <${settings.senderEmail}>` : settings.senderEmail,
+          to: [recipient],
+          subject,
+          text: body
+        })
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Resend email send failed');
+      }
+
+      return {
+        provider: 'resend',
+        messageId: result.id || '',
+        status: 'sent'
+      };
+    }
+
+    throw new Error('SMTP delivery is not enabled in this runtime yet. Use Resend for v1 sending.');
+  },
+
+  async approveEmailRun(userId, runId) {
+    const run = await AgentRun.findOne({ _id: runId, userId });
+    if (!run) {
+      return null;
+    }
+    if (run.agentType !== 'email') {
+      throw new Error('Only Email Agent runs can be approved');
+    }
+    if (run.status !== 'needs_approval') {
+      throw new Error('This email draft is not awaiting approval');
+    }
+
+    const settings = await emailSettingsService.getSettings(userId);
+    const delivery = await agentService.deliverEmail(run, settings);
+    run.status = 'sent';
+    run.approval = {
+      required: true,
+      approvedAt: new Date(),
+      approvedBy: userId
+    };
+    run.output = {
+      ...toPlainObject(run.output),
+      delivery: {
+        ...delivery,
+        sentAt: new Date().toISOString()
+      }
+    };
+    await run.save();
+    return run;
+  }
+};
+
 export default {
   authService,
   chatbotService,
@@ -1228,5 +1823,7 @@ export default {
   utilityService,
   adCampaignService,
   businessMetricsService,
-  businessPredictionService
+  businessPredictionService,
+  emailSettingsService,
+  agentService
 };

@@ -16,6 +16,7 @@ const ChatInterface = lazy(() => import("./pages/ChatInterface"))
 const Analytics = lazy(() => import("./pages/Analytics"))
 const AdCampaignBuilder = lazy(() => import("./pages/AdCampaignBuilder"))
 const BusinessPrediction = lazy(() => import("./pages/BusinessPrediction"))
+const AgentHub = lazy(() => import("./pages/AgentHub"))
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth()
@@ -116,6 +117,16 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Analytics />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/agents"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AgentHub />
                       </Layout>
                     </ProtectedRoute>
                   }

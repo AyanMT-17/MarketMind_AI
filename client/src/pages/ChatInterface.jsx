@@ -50,9 +50,14 @@ function ChatInterface() {
             <p className="editorial-eyebrow text-xs font-semibold uppercase">Assistant context</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.04em] text-[#1f201d]">{chatbot?.name}</h1>
           </div>
-          <Link to={`/chatbots/${chatbotId}/edit`}>
-            <Button variant="outline">Edit bot</Button>
-          </Link>
+          <div className="flex gap-3">
+            <Link to={`/agents?agent=email&chatbotId=${chatbotId}`}>
+              <Button variant="secondary">Email agent</Button>
+            </Link>
+            <Link to={`/chatbots/${chatbotId}/edit`}>
+              <Button variant="outline">Edit bot</Button>
+            </Link>
+          </div>
         </div>
 
         <div className="mt-6 space-y-4">

@@ -269,6 +269,11 @@ function ChatbotBuilder() {
         </div>
         <div className="flex flex-wrap gap-3">
           {chatbotId ? (
+            <Link to={`/agents?agent=sales_recommendation&chatbotId=${chatbotId}`}>
+              <Button variant="outline">Open agents</Button>
+            </Link>
+          ) : null}
+          {chatbotId ? (
             <Link to={`/chatbots/${chatbotId}/chat`}>
               <Button variant="secondary">Open Chat</Button>
             </Link>
