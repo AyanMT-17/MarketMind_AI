@@ -12,11 +12,11 @@ function getAuthHeaders() {
 }
 
 async function parseJson(response) {
-  const data = await response.json()
   if (!response.ok) {
+    const data = await response.json().catch(() => ({}))
     throw new Error(data.message || "Request failed")
   }
-  return data
+  return await response.json()
 }
 
 export function useAgentCatalog() {

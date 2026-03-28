@@ -2,19 +2,19 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import axios from 'axios';
 import Groq from 'groq-sdk';
-import mongoose from 'mongoose';
+import nodemailer from 'nodemailer';
 import {
   APIIntegration,
-  AgentRun,
   Analytics,
-  BusinessMetrics,
-  BusinessPrediction,
   Chatbot,
   Conversation,
-  EmailSettings,
   User,
-  AdCampaign
-} from './database.js';
+  AdCampaign,
+  BusinessMetrics,
+  BusinessPrediction,
+  EmailSettings,
+  AgentRun
+} from '../models/database.js';
 
 const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
 
@@ -1416,7 +1416,23 @@ export const emailSettingsService = {
       return { success: false, message: 'SMTP host, username, and password are required.' };
     }
 
-    return { success: true, message: 'SMTP settings saved. Delivery support is reserved for configured environments.' };
+    try {
+      const transporter = nodemailer.createTransport({
+        host: settings.smtp.host,
+        port: settings.smtp.port,
+        secure: settings.smtp.secure,
+        auth: {
+          user: settings.smtp.username,
+          pass: settings.smtp.password
+        },
+        timeout: 10000 // 10 seconds timeout
+      });
+
+      await transporter.verify();
+      return { success: true, message: 'SMTP settings are valid and connection was successful.' };
+    } catch (error) {
+      return { success: false, message: `SMTP connection failed: ${error.message}` };
+    }
   }
 };
 
@@ -1778,7 +1794,42 @@ export const agentService = {
       };
     }
 
-    throw new Error('SMTP delivery is not enabled in this runtime yet. Use Resend for v1 sending.');
+    if (settings.providerType === 'smtp') {
+      if (!settings.smtp?.host || !settings.smtp?.username || !settings.smtp?.password) {
+        throw new Error('SMTP settings are incomplete');
+      }
+
+      const transporter = nodemailer.createTransport({
+        host: settings.smtp.host,
+        port: settings.smtp.port,
+        secure: settings.smtp.secure,
+        auth: {
+          user: settings.smtp.username,
+          pass: settings.smtp.password
+        }
+      });
+
+      const info = await transporter.sendMail({
+        from: settings.senderName ? `${settings.senderName} <${settings.senderEmail || settings.smtp.username}>` : (settings.senderEmail || settings.smtp.username),
+        to: recipient,
+        subject,
+        text: body
+      });
+
+      return {
+        provider: 'smtp',
+        messageId: info.messageId,
+        status: 'sent'
+      };
+    }
+
+    // If not resend or smtp provider, do not block the app (development safe fallback).
+    // This prevents 500 errors when email delivery is not configured.
+    return {
+      provider: settings.providerType || 'unknown',
+      status: 'skipped',
+      message: 'Email provider is not configured for sending in this runtime. Enable Resend or SMTP in settings to send actual emails.'
+    };
   },
 
   async approveEmailRun(userId, runId) {
@@ -1794,8 +1845,21 @@ export const agentService = {
     }
 
     const settings = await emailSettingsService.getSettings(userId);
-    const delivery = await agentService.deliverEmail(run, settings);
-    run.status = 'sent';
+    let delivery;
+
+    if (!settings.enabled) {
+      // Email disabled in settings; record skip to avoid 500.
+      delivery = {
+        provider: settings.providerType || 'none',
+        status: 'skipped',
+        message: 'Email sending is disabled in user settings.'
+      };
+      run.status = 'approved';
+    } else {
+      delivery = await agentService.deliverEmail(run, settings);
+      run.status = 'sent';
+    }
+
     run.approval = {
       required: true,
       approvedAt: new Date(),

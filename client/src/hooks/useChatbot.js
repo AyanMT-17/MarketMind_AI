@@ -1,5 +1,6 @@
 import { useEffect, useState, startTransition, useDeferredValue } from "react"
 import { getApiBaseUrl } from "../lib/api"
+import { fetchWithDedup, fetchWithRetry } from "../lib/api-with-retry"
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("authToken")
@@ -23,14 +24,19 @@ export function useChatbots() {
     setError("")
 
     try {
-      const response = await fetch(`${apiBaseUrl}/chatbots`, {
+      const response = await fetchWithDedup(`${apiBaseUrl}/chatbots`, {
         headers: getAuthHeaders(),
       })
-      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to load chatbots")
+        const errorData = await response.json()
+        if (response.status === 429) {
+          throw new Error("Rate limited. Please wait before trying again.")
+        }
+        throw new Error(errorData.message || "Failed to load chatbots")
       }
+
+      const data = await response.json()
 
       startTransition(() => {
         setChatbots(data.chatbots || [])
@@ -82,14 +88,19 @@ export function useChatbot(chatbotId) {
       setError("")
 
       try {
-        const response = await fetch(`${apiBaseUrl}/chatbots/${chatbotId}`, {
+        const response = await fetchWithDedup(`${apiBaseUrl}/chatbots/${chatbotId}`, {
           headers: getAuthHeaders(),
         })
-        const data = await response.json()
 
         if (!response.ok) {
-          throw new Error(data.message || "Failed to load chatbot")
+          const errorData = await response.json()
+          if (response.status === 429) {
+            throw new Error("Rate limited. Please wait before trying again.")
+          }
+          throw new Error(errorData.message || "Failed to load chatbot")
         }
+
+        const data = await response.json()
 
         setChatbot(data.chatbot)
       } catch (err) {
@@ -117,11 +128,12 @@ export async function saveChatbot(chatbotId, payload) {
     body: JSON.stringify(payload),
   })
 
-  const data = await response.json()
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to save chatbot")
   }
 
+  const data = await response.json()
   return data.chatbot
 }
 
@@ -131,8 +143,8 @@ export async function deleteChatbot(chatbotId) {
     headers: getAuthHeaders(),
   })
 
-  const data = await response.json()
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to delete chatbot")
   }
 }
@@ -141,12 +153,13 @@ export async function generateDeploymentKey(chatbotId) {
   const response = await fetch(`${apiBaseUrl}/chatbots/${chatbotId}/key`, {
     headers: getAuthHeaders(),
   })
-  const data = await response.json()
 
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to generate deployment key")
   }
 
+  const data = await response.json()
   return data.deploymentKey
 }
 
@@ -155,12 +168,13 @@ export async function testAllIntegrations(chatbotId) {
     method: "POST",
     headers: getAuthHeaders(),
   })
-  const data = await response.json()
 
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to test integrations")
   }
 
+  const data = await response.json()
   return data.results || []
 }
 
@@ -169,12 +183,13 @@ export async function fetchIntegrations(chatbotId) {
   const response = await fetch(`${apiBaseUrl}/integrations${query}`, {
     headers: getAuthHeaders(),
   })
-  const data = await response.json()
 
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to load integrations")
   }
 
+  const data = await response.json()
   return data.integrations || []
 }
 
@@ -189,12 +204,13 @@ export async function saveIntegration(integrationId, payload) {
     headers: getAuthHeaders(),
     body: JSON.stringify(payload),
   })
-  const data = await response.json()
 
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to save integration")
   }
 
+  const data = await response.json()
   return data.integration
 }
 
@@ -203,9 +219,9 @@ export async function removeIntegration(integrationId) {
     method: "DELETE",
     headers: getAuthHeaders(),
   })
-  const data = await response.json()
 
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to delete integration")
   }
 }
@@ -216,12 +232,13 @@ export async function testIntegration(integrationId) {
     headers: getAuthHeaders(),
     body: JSON.stringify({}),
   })
-  const data = await response.json()
 
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to test integration")
   }
 
+  const data = await response.json()
   return data.result
 }
 
@@ -229,12 +246,13 @@ export async function fetchAnalytics(chatbotId) {
   const response = await fetch(`${apiBaseUrl}/analytics/${chatbotId}`, {
     headers: getAuthHeaders(),
   })
-  const data = await response.json()
 
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to load analytics")
   }
 
+  const data = await response.json()
   return data.analytics
 }
 
@@ -242,24 +260,29 @@ export async function fetchUsage(chatbotId) {
   const response = await fetch(`${apiBaseUrl}/usage/${chatbotId}`, {
     headers: getAuthHeaders(),
   })
-  const data = await response.json()
 
   if (!response.ok) {
+    const data = await response.json()
     throw new Error(data.message || "Failed to load usage")
   }
 
+  const data = await response.json()
   return data.usage
 }
 
 export async function fetchRecentConversations(chatbotId) {
-  const response = await fetch(`${apiBaseUrl}/conversations/${chatbotId}/recent`, {
+  const response = await fetchWithDedup(`${apiBaseUrl}/conversations/${chatbotId}/recent`, {
     headers: getAuthHeaders(),
   })
-  const data = await response.json()
 
   if (!response.ok) {
-    throw new Error(data.message || "Failed to load recent conversations")
+    const errorData = await response.json()
+    if (response.status === 429) {
+      throw new Error("Rate limited. Please wait before trying again.")
+    }
+    throw new Error(errorData.message || "Failed to load recent conversations")
   }
 
+  const data = await response.json()
   return data.conversations || []
 }

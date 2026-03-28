@@ -18,32 +18,108 @@ MarketMind AI is a business-focused AI chatbot platform that helps teams build c
 
 ## Tech Stack
 - Frontend: React, Vite, Tailwind CSS, Recharts
-- Backend: Node.js, Express, Mongoose
+- Backend: Node.js, Express, Mongoose, Socket.IO
 - Database: MongoDB
 - AI provider: Groq
 - Real-time transport: Socket.IO and Server-Sent Events
+- Authentication: JWT
+- Testing: Jest (backend)
 
 ## Project Structure
-```text
+```
 MarketMind_AI/
 ├── client/
+│   ├── public/
 │   ├── src/
+│   │   ├── assets/
 │   │   ├── components/
+│   │   │   ├── Layout/
+│   │   │   │   ├── Header.jsx
+│   │   │   │   ├── Layout.jsx
+│   │   │   │   └── Sidebar.jsx
+│   │   │   └── UI/
+│   │   │       ├── Button.jsx
+│   │   │       ├── Card.jsx
+│   │   │       ├── Input.jsx
+│   │   │       ├── LoadingSpinner.jsx
+│   │   │       └── Toast.jsx
 │   │   ├── contexts/
+│   │   │   ├── AuthContext.jsx
+│   │   │   └── ToastContext.jsx
 │   │   ├── hooks/
-│   │   └── pages/
+│   │   │   ├── useAgents.js
+│   │   │   ├── useChat.js
+│   │   │   └── useChatbot.js
+│   │   ├── lib/
+│   │   │   ├── api.js
+│   │   │   └── api-with-retry.js
+│   │   ├── pages/
+│   │   │   ├── AdCampaignBuilder.jsx
+│   │   │   ├── AgentHub.jsx
+│   │   │   ├── Analytics.jsx
+│   │   │   ├── BusinessPrediction.jsx
+│   │   │   ├── ChatbotBuilder.jsx
+│   │   │   ├── ChatInterface.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Landing.jsx
+│   │   │   ├── Login.jsx
+│   │   │   └── Register.jsx
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   ├── README.md
+│   └── vite.config.js
 ├── server/
-│   ├── database.js
-│   ├── services.js
+│   ├── src/
+│   │   ├── app.js
+│   │   ├── controllers/
+│   │   ├── middlewares/
+│   │   ├── models/
+│   │   │   └── database.js
+│   │   ├── routes/
+│   │   │   ├── agents.js
+│   │   │   ├── auth.js
+│   │   │   ├── business.js
+│   │   │   ├── campaigns.js
+│   │   │   ├── chat.js
+│   │   │   ├── chatbot.js
+│   │   │   ├── emailSettings.js
+│   │   │   ├── integration.js
+│   │   │   ├── predictions.js
+│   │   │   └── utils.js
+│   │   ├── services/
+│   │   │   ├── adBusiness.js
+│   │   │   ├── authAndValidation.js
+│   │   │   ├── chatbotIntegration.js
+│   │   │   ├── conversationAI.js
+│   │   │   ├── emailAgent.js
+│   │   │   ├── index.js
+│   │   │   └── legacyServices.js
+│   │   ├── test/
+│   │   │   └── api.test.js
+│   │   └── utils/
+│   ├── package.json
 │   ├── server.js
-│   └── test/
+│   └── vercel.json
+├── docs/
+├── shared/
 ├── API_DOCUMENTATION.md
 ├── ARCHITECTURE.md
 ├── DEVELOPER_GUIDE.md
 ├── DEPLOYMENT.md
+├── README.md
 ├── SETUP_GUIDE.md
 └── STATUS_REPORT.md
 ```
+
+## Prerequisites
+- Node.js (v16 or higher)
+- MongoDB (local or cloud instance)
+- Groq API key (for AI functionality)
 
 ## Quick Start
 1. Install dependencies in `server/` and `client/`.
@@ -59,13 +135,19 @@ MarketMind_AI/
 - Frontend production build passes.
 
 ## Documentation
-- [SETUP_GUIDE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/SETUP_GUIDE.md)
-- [API_DOCUMENTATION.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/API_DOCUMENTATION.md)
-- [ARCHITECTURE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/ARCHITECTURE.md)
-- [DEVELOPER_GUIDE.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/DEVELOPER_GUIDE.md)
-- [DEPLOYMENT.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/DEPLOYMENT.md)
-- [STATUS_REPORT.md](/c:/Ayan/Coding/Web%20Development/Project/MarketMind%20AI/MarketMind_AI/STATUS_REPORT.md)
+- [SETUP_GUIDE.md](SETUP_GUIDE.md)
+- [API_DOCUMENTATION.md](API_DOCUMENTATION.md)
+- [ARCHITECTURE.md](ARCHITECTURE.md)
+- [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)
+- [DEPLOYMENT.md](DEPLOYMENT.md)
+- [STATUS_REPORT.md](STATUS_REPORT.md)
 
 ## Current Status
 - Core implementation is done from the codebase side.
 - Remaining work is mainly live-environment rollout, real credential validation, and production infrastructure setup.
+
+## Contributing
+Contributions are welcome! Please read the [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) for guidelines on how to contribute to this project.
+
+## License
+This project is licensed under the MIT License.

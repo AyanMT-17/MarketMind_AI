@@ -31,6 +31,13 @@ const emptyEmailSettings = {
   senderEmail: "",
   resendApiKey: "",
   enabled: false,
+  smtp: {
+    host: "",
+    port: 587,
+    username: "",
+    password: "",
+    secure: false,
+  },
 }
 
 function AgentHub() {
@@ -451,9 +458,44 @@ function AgentHub() {
                 />
               </div>
             ) : (
-              <p className="mt-4 rounded-[1.4rem] bg-[#fbf4e8] px-4 py-3 text-sm text-[#6a6055]">
-                SMTP config can be saved, but v1 runtime delivery is enabled through Resend. Use Resend for direct sending from the app.
-              </p>
+              <div className="mt-6 space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Input
+                    label="SMTP Host"
+                    value={emailConfig.smtp?.host || ""}
+                    onChange={(event) => setEmailConfig((prev) => ({ ...prev, smtp: { ...prev.smtp, host: event.target.value } }))}
+                  />
+                  <Input
+                    label="SMTP Port"
+                    type="number"
+                    value={emailConfig.smtp?.port || 587}
+                    onChange={(event) => setEmailConfig((prev) => ({ ...prev, smtp: { ...prev.smtp, port: Number(event.target.value) } }))}
+                  />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Input
+                    label="SMTP Username"
+                    value={emailConfig.smtp?.username || ""}
+                    onChange={(event) => setEmailConfig((prev) => ({ ...prev, smtp: { ...prev.smtp, username: event.target.value } }))}
+                  />
+                  <Input
+                    label="SMTP Password"
+                    type="password"
+                    value={emailConfig.smtp?.password || ""}
+                    placeholder={emailConfig.smtpConfigured ? "********" : "Enter password"}
+                    onChange={(event) => setEmailConfig((prev) => ({ ...prev, smtp: { ...prev.smtp, password: event.target.value } }))}
+                  />
+                </div>
+                <label className="flex items-center gap-3 rounded-[1.4rem] bg-[#fffaf1] px-4 py-3 text-sm text-[#4f473d]">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(emailConfig.smtp?.secure)}
+                    onChange={(event) => setEmailConfig((prev) => ({ ...prev, smtp: { ...prev.smtp, secure: event.target.checked } }))}
+                    className="h-4 w-4 rounded border-[#d8c5af]"
+                  />
+                  Use TLS/SSL (Secure)
+                </label>
+              </div>
             )}
             <div className="mt-5 flex gap-3">
               <Button onClick={handleSaveEmailSettings} loading={settingsSaving}>Save email settings</Button>

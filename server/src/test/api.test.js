@@ -38,8 +38,8 @@ test.before(async () => {
   process.env.CLIENT_URL = 'http://localhost:5173';
   delete process.env.GROQ_API_KEY;
 
-  ({ connectDB, User } = await import('../database.js'));
-  ({ createServer } = await import('../server.js'));
+  ({ connectDB, User } = await import('../models/database.js'));
+  ({ createServer } = await import('../app.js'));
 
   await connectDB();
 

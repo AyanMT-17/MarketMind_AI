@@ -3,6 +3,7 @@
 
 import { createContext, useContext, useState, useEffect } from "react"
 import { getApiBaseUrl } from "../lib/api"
+import { fetchWithRetry } from "../lib/api-with-retry"
 
 const AuthContext = createContext()
 
@@ -58,11 +59,11 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch(`${apiBaseUrl}/auth/login`, {
+      const response = await fetchWithRetry(`${apiBaseUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      })
+      }, 2) // Max 2 attempts with backoff
 
       const rawText = await response.text();
       let data;
@@ -73,6 +74,13 @@ export function AuthProvider({ children }) {
       }
 
       if (!response.ok) {
+        // Handle 429 specially - tell user to wait
+        if (response.status === 429) {
+          const errorMessage = "Too many login attempts. Please wait 5-10 minutes before trying again.";
+          console.error("Login Rate Limited:", errorMessage);
+          return { success: false, error: errorMessage };
+        }
+        
         const errorMessage = data.message || "Login failed";
         console.error("Login Error from API:", errorMessage);
         return { success: false, error: errorMessage };

@@ -112,12 +112,13 @@ export function useChat(chatbotId) {
     const response = await fetch(`${apiBaseUrl}/conversations/${nextConversationId}`, {
       headers: getAuthHeaders(),
     })
-    const data = await response.json()
 
     if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
       throw new Error(data.message || "Failed to load conversation")
     }
 
+    const data = await response.json()
     setConversationId(data.conversation._id)
     setMessages(data.conversation.messages || [])
     setConversationMeta({
