@@ -11,12 +11,6 @@ const Login = lazy(() => import("./pages/Login"))
 const Register = lazy(() => import("./pages/Register"))
 const Landing = lazy(() => import("./pages/Landing"))
 const Dashboard = lazy(() => import("./pages/Dashboard"))
-const ChatbotBuilder = lazy(() => import("./pages/ChatbotBuilder"))
-const ChatInterface = lazy(() => import("./pages/ChatInterface"))
-const Analytics = lazy(() => import("./pages/Analytics"))
-const AdCampaignBuilder = lazy(() => import("./pages/AdCampaignBuilder"))
-const BusinessPrediction = lazy(() => import("./pages/BusinessPrediction"))
-const AgentHub = lazy(() => import("./pages/AgentHub"))
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth()
@@ -77,76 +71,6 @@ function App() {
                     <ProtectedRoute>
                       <Layout>
                         <Dashboard />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chatbots/new"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <ChatbotBuilder />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chatbots/:chatbotId/edit"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <ChatbotBuilder />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chatbots/:chatbotId/chat"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <ChatInterface />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/chatbots/:chatbotId/analytics"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <Analytics />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/agents"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <AgentHub />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/campaigns"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <AdCampaignBuilder />
-                      </Layout>
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/predictions"
-                  element={
-                    <ProtectedRoute>
-                      <Layout>
-                        <BusinessPrediction />
                       </Layout>
                     </ProtectedRoute>
                   }

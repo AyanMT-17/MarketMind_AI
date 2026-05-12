@@ -1,5 +1,3 @@
-export * from './authAndValidation.js';
-export * from './chatbotIntegration.js';
-export * from './conversationAI.js';
-export * from './adBusiness.js';
-export * from './emailAgent.js';
+export { utilityService, validationService, authService } from './coreServices.js';
+export { projectService } from './projectService.js';
+export { aiStrategyService } from './aiStrategyService.js';

@@ -20,7 +20,7 @@ function Header({ toggleSidebar }) {
           </button>
           <div>
             <p className="editorial-eyebrow text-xs font-semibold uppercase">MarketMind AI</p>
-            <h1 className="text-xl font-semibold tracking-[-0.04em] text-[#1f201d]">Business chatbot studio</h1>
+            <h1 className="text-xl font-semibold tracking-[-0.04em] text-[#1f201d]">Strategic Co-Founder Suite</h1>
           </div>
         </div>
 
