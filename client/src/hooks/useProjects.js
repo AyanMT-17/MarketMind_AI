@@ -33,7 +33,7 @@ export function useProjects() {
     fetchProjects();
   }, [fetchProjects]);
 
-  const createProject = async (payload) => {
+  const createProject = useCallback(async (payload) => {
     const response = await fetch(`${getApiBaseUrl()}/projects`, {
       method: 'POST',
       headers: {
@@ -46,9 +46,9 @@ export function useProjects() {
     if (!data.success) throw new Error(data.message);
     await fetchProjects();
     return data.project;
-  };
+  }, [token, fetchProjects]);
 
-  const deleteProject = async (id) => {
+  const deleteProject = useCallback(async (id) => {
     const response = await fetch(`${getApiBaseUrl()}/projects/${id}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` }
@@ -56,7 +56,29 @@ export function useProjects() {
     const data = await response.json();
     if (!data.success) throw new Error(data.message);
     await fetchProjects();
-  };
+  }, [token, fetchProjects]);
 
-  return { projects, loading, error, fetchProjects, createProject, deleteProject };
-}
+  const generateStrategy = useCallback(async (projectId, type) => {
+    const response = await fetch(`${getApiBaseUrl()}/projects/${projectId}/generate/${type}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      }
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.message);
+    return data.report;
+  }, [token]);
+
+  const getReports = useCallback(async (projectId) => {
+    const response = await fetch(`${getApiBaseUrl()}/projects/${projectId}/reports`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await response.json();
+    if (!data.success) throw new Error(data.message);
+    return data.reports;
+  }, [token]);
+
+  return { projects, loading, error, fetchProjects, createProject, deleteProject, generateStrategy, getReports };
+  }

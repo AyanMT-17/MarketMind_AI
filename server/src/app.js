@@ -13,7 +13,7 @@ const buildAllowedOrigins = () => [...new Set([...DEFAULT_ALLOWED_ORIGINS, proce
 
 const buildGeneralLimiter = () => rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500, // Increased from 100 to 500
   standardHeaders: true,
   legacyHeaders: false,
   message: {
