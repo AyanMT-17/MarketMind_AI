@@ -103,8 +103,13 @@ export function AuthProvider({ children }) {
     }
   }
 
-  const register = async (userData) => {
+  const register = async (userDataOrFirstName, lastName, email, password, company) => {
     try {
+      // Handle both object and multi-arg calls
+      const userData = typeof userDataOrFirstName === 'object' 
+        ? userDataOrFirstName 
+        : { firstName: userDataOrFirstName, lastName, email, password, company };
+
       const response = await fetch(`${apiBaseUrl}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
