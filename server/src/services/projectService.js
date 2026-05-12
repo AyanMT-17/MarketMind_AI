@@ -4,9 +4,9 @@ export const projectService = {
   async createProject(userId, payload) {
     const project = new Project({
       userId,
-      name: payload.name.trim(),
-      description: payload.description.trim(),
-      targetAudience: payload.targetAudience?.trim() || '',
+      name: (payload.name || '').toString().trim(),
+      description: (payload.description || '').toString().trim(),
+      targetAudience: (payload.targetAudience || '').toString().trim(),
       competitors: Array.isArray(payload.competitors) ? payload.competitors : [],
       coreFeatures: Array.isArray(payload.coreFeatures) ? payload.coreFeatures : []
     });
@@ -27,9 +27,9 @@ export const projectService = {
     const project = await this.getProject(userId, projectId);
     if (!project) return null;
 
-    if (payload.name !== undefined) project.name = payload.name.trim();
-    if (payload.description !== undefined) project.description = payload.description.trim();
-    if (payload.targetAudience !== undefined) project.targetAudience = payload.targetAudience.trim();
+    if (payload.name !== undefined) project.name = (payload.name || '').toString().trim();
+    if (payload.description !== undefined) project.description = (payload.description || '').toString().trim();
+    if (payload.targetAudience !== undefined) project.targetAudience = (payload.targetAudience || '').toString().trim();
     if (payload.competitors !== undefined) project.competitors = payload.competitors;
     if (payload.coreFeatures !== undefined) project.coreFeatures = payload.coreFeatures;
 

@@ -37,10 +37,10 @@ export const validationService = {
       return ['User data is required'];
     }
 
-    const email = userData.email?.trim();
-    const password = userData.password || '';
-    const firstName = userData.firstName?.trim();
-    const lastName = userData.lastName?.trim();
+    const email = typeof userData.email === 'string' ? userData.email.trim() : '';
+    const password = typeof userData.password === 'string' ? userData.password : '';
+    const firstName = typeof userData.firstName === 'string' ? userData.firstName.trim() : '';
+    const lastName = typeof userData.lastName === 'string' ? userData.lastName.trim() : '';
 
     if (!email) {
       errors.push('Email is required');

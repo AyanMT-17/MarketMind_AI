@@ -24,6 +24,7 @@ const buildGeneralLimiter = () => rateLimit({
 
 export const createApp = () => {
   const app = express();
+  app.set('trust proxy', 1);
   const allowedOrigins = buildAllowedOrigins();
 
   app.use(cors({
