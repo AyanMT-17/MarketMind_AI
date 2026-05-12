@@ -7,11 +7,7 @@ function Sidebar({ isOpen, setIsOpen }) {
   const { logout, user } = useAuth()
 
   const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: "grid" },
-    { name: "New Chatbot", href: "/chatbots/new", icon: "spark" },
-    { name: "Agent Hub", href: "/agents", icon: "agents" },
-    { name: "Campaign Lab", href: "/campaigns", icon: "campaign" },
-    { name: "Prediction Desk", href: "/predictions", icon: "chart" },
+    { name: "Dashboard", href: "/dashboard", icon: "grid" }
   ]
 
   const isActive = (href) => location.pathname === href || location.pathname.startsWith(`${href}/`)
@@ -21,30 +17,6 @@ function Sidebar({ isOpen, setIsOpen }) {
       return (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 5h7v6H4zM13 5h7v6h-7zM4 13h7v6H4zM13 13h7v6h-7z" />
-        </svg>
-      )
-    }
-
-    if (icon === "campaign") {
-      return (
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      )
-    }
-
-    if (icon === "agents") {
-      return (
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5V9l-5 11zM2 20h5l5-11H7L2 20zm7 0h6l3-7H12l-3 7zm1-11h4l2-5h-4l-2 5z" />
-        </svg>
-      )
-    }
-
-    if (icon === "chart") {
-      return (
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
         </svg>
       )
     }
@@ -82,7 +54,7 @@ function Sidebar({ isOpen, setIsOpen }) {
           </div>
           <div>
             <h1 className="text-lg font-semibold tracking-[-0.04em] text-[#1f201d]">MarketMind</h1>
-            <p className="text-xs uppercase tracking-[0.28em] text-[#8a7b69]">Support-first AI</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-[#8a7b69]">Strategy AI</p>
           </div>
         </div>
 
@@ -117,9 +89,9 @@ function Sidebar({ isOpen, setIsOpen }) {
 
         <div className="mx-4 rounded-[1.8rem] border border-[#dfeede] bg-[linear-gradient(180deg,_#eef9ef_0%,_#dff5e3_100%)] p-5 text-[#1f201d]">
           <p className="text-xs uppercase tracking-[0.28em] text-[#249a52]">Studio note</p>
-          <h2 className="mt-2 text-lg font-semibold tracking-[-0.04em]">Design chatbots around real business actions</h2>
+          <h2 className="mt-2 text-lg font-semibold tracking-[-0.04em]">Iterate on your product vision</h2>
           <p className="mt-2 text-sm leading-6 text-[#4f473d]">
-            Shape the prompt, lead flow, escalation path, and integrations so every conversation feels like part of your company.
+            Use the strategy engines to validate your idea, build a launch plan, and refine your pitch before you code.
           </p>
         </div>
 

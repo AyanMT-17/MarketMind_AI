@@ -1,31 +1,10 @@
 # MarketMind AI Client
 
-This package contains the React frontend for the MarketMind AI chatbot workspace.
+The React 19 frontend for the MarketMind AI Strategic Co-Founder Suite. 
 
-## Features
-- Authenticated dashboard for chatbot management
-- Chatbot builder for prompts, limits, and integrations
-- Real-time chat interface using Socket.IO with SSE fallback
-- Analytics view for usage and top questions
-- Route-level lazy loading for the main pages
+Built with Vite, Tailwind CSS v4, and Radix UI components to provide a sleek, fast, and accessible dashboard for managing startup projects and AI strategy reports.
 
-## Environment
-Copy `.env.example` to `.env` and set:
-
-```env
-VITE_API_BASE_URL=http://localhost:5000
-VITE_APP_NAME=MarketMind AI
-VITE_APP_VERSION=1.0.0
-```
-
-## Commands
-```bash
-npm install
-npm run dev
-npm run lint
-npm run build
-```
-
-## Notes
-- The frontend expects the backend to expose the chatbot-platform routes documented in the root `API_DOCUMENTATION.md`.
-- Login/register still use the compatible auth contract preserved during the rebuild.
+## Getting Started
+- `npm install`
+- `npm run dev` to start the development server
+- `npm run build` to build for production

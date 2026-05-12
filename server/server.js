@@ -1,4 +1,7 @@
+import dotenv from 'dotenv';
 import { startServer } from './src/app.js';
+
+dotenv.config();
 
 startServer().then((serverInstance) => {
   const shutdown = async () => {

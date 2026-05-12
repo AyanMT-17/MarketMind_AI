@@ -1,151 +1,105 @@
 "use client"
-
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
+import { Sparkles, ArrowRight } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { useToast } from "../contexts/ToastContext"
 import Button from "../components/UI/Button"
 import Input from "../components/UI/Input"
+import Card from "../components/UI/Card"
 
 function Login() {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  })
-  const [loading, setLoading] = useState(false)
+  const [formData, setFormData] = useState({ email: "", password: "" })
   const { login } = useAuth()
   const { addToast } = useToast()
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
-  }
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-
     try {
-      const result = await login(formData.email, formData.password)
-      if (result.message) {
-        addToast("Login successful!", "success")
-      } else {
-        addToast(result.error || "Login failed", "error")
-      }
-    } catch {
-      addToast("An error occurred during login", "error")
+      await login(formData.email, formData.password)
+      navigate("/dashboard")
+    } catch (err) {
+      addToast(err.message, "error")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="auth-background min-h-screen px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto grid min-h-[calc(100vh-5rem)] max-w-7xl gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="flex flex-col justify-between rounded-[2.5rem] border border-[#eadbc7] bg-[rgba(255,250,241,0.72)] p-8 shadow-[0_28px_72px_rgba(77,56,24,0.08)] backdrop-blur-xl sm:p-10">
+    <div className="auth-background flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-[1000px] overflow-hidden rounded-[2.5rem] border border-[#eadbc7] bg-[rgba(255,251,245,0.88)] shadow-[0_24px_64px_rgba(71,50,19,0.1)] backdrop-blur-xl lg:grid lg:grid-cols-[1fr_1.1fr]">
+        <div className="hidden flex-col justify-between bg-[linear-gradient(135deg,_#f4ebdd_0%,_#dff5e3_100%)] p-12 lg:flex">
           <div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1f201d] text-[#fffaf1]">
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" />
-                </svg>
-              </div>
-              <div>
-                <p className="editorial-eyebrow text-xs font-semibold uppercase">MarketMind AI</p>
-                <h1 className="text-lg font-semibold text-[#1f201d]">Business support workspace</h1>
-              </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1f201d] text-[#fffaf1]">
+              <Sparkles className="h-6 w-6" />
             </div>
-
-            <div className="mt-12">
-              <div className="auth-badge inline-flex rounded-full px-4 py-2 text-sm font-medium text-[#249a52]">
-                Real-time chatbots for support, sales, and lead capture
-              </div>
-              <h2 className="editorial-title mt-6 max-w-3xl text-5xl font-semibold leading-[0.95] text-[#1f201d] md:text-7xl">
-                Support that looks human, moves fast, and stays on brand.
-              </h2>
-              <p className="mt-6 max-w-xl text-base leading-7 text-[#5f564b]">
-                Build assistants with your company voice, connect APIs, capture qualified leads, and monitor every conversation from one calm workspace.
+            <h1 className="editorial-title mt-8 text-4xl font-semibold leading-tight text-[#1f201d]">
+              Welcome back to your strategic workspace.
+            </h1>
+          </div>
+          <div className="space-y-4">
+            <div className="rounded-[1.5rem] bg-[rgba(255,255,255,0.6)] p-5 backdrop-blur-md">
+              <p className="text-sm font-semibold uppercase tracking-wider text-[#249a52]">Market Validation</p>
+              <p className="mt-2 text-sm leading-6 text-[#4f473d]">
+                Review your latest market analysis and refine your product positioning before launch.
+              </p>
+            </div>
+            <div className="rounded-[1.5rem] bg-[rgba(255,255,255,0.6)] p-5 backdrop-blur-md">
+              <p className="text-sm font-semibold uppercase tracking-wider text-[#249a52]">100-Day Planning</p>
+              <p className="mt-2 text-sm leading-6 text-[#4f473d]">
+                Pick up where you left off and continue shaping your startup's execution timeline.
               </p>
             </div>
           </div>
+        </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { label: "Live replies", value: "SSE + Socket" },
-              { label: "Business signals", value: "Lead + Escalation" },
-              { label: "Analytics", value: "Usage intelligence" },
-            ].map((item) => (
-              <div key={item.label} className="rounded-[1.8rem] border border-[#eadbc7] bg-[#fffaf1] p-5">
-                <p className="text-xs uppercase tracking-[0.22em] text-[#8a7b69]">{item.label}</p>
-                <p className="mt-3 text-lg font-semibold text-[#1f201d]">{item.value}</p>
-              </div>
-            ))}
+        <div className="flex flex-col justify-center p-8 sm:p-12">
+          <div className="lg:hidden">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1f201d] text-[#fffaf1]">
+              <Sparkles className="h-5 w-5" />
+            </div>
           </div>
-        </section>
+          <div className="mt-6 lg:mt-0">
+            <h2 className="text-2xl font-semibold tracking-[-0.03em] text-[#1f201d]">Sign in to MarketMind</h2>
+            <p className="mt-2 text-sm text-[#6a6055]">Enter your credentials to access your projects.</p>
+          </div>
 
-        <section className="auth-panel flex items-center rounded-[2.5rem] p-8 sm:p-10">
-          <div className="w-full">
-            <p className="editorial-eyebrow text-xs font-semibold uppercase">Welcome back</p>
-            <h3 className="editorial-title mt-3 text-4xl font-semibold text-[#1f201d]">Sign in to your studio</h3>
-            <p className="mt-3 text-sm leading-6 text-[#6a6055]">
-              Pick up where you left off and continue shaping your business chatbot experience.
-            </p>
-
-            <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <div className="space-y-4">
               <Input
                 label="Email address"
-                name="email"
                 type="email"
                 required
                 value={formData.email}
-                onChange={handleChange}
-                placeholder="you@company.com"
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="founder@example.com"
               />
-
               <Input
                 label="Password"
-                name="password"
                 type="password"
                 required
                 value={formData.password}
-                onChange={handleChange}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 placeholder="Enter your password"
               />
-
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center text-[#6a6055]">
-                  <input type="checkbox" className="mr-2 h-4 w-4 rounded border-[#d8c5af] text-[#3fc46f] focus:ring-[#dff5e3]" />
-                  Keep me signed in
-                </label>
-                <a href="#" className="font-medium text-[#249a52] transition hover:text-[#1f201d]">
-                  Forgot password?
-                </a>
-              </div>
-
-              <Button type="submit" loading={loading} size="lg" className="w-full">
-                {loading ? "Signing in..." : "Enter workspace"}
-              </Button>
-            </form>
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <button className="rounded-full border border-[#dfcfbb] bg-[#fffaf1] px-4 py-3 text-sm font-medium text-[#4f473d] transition hover:bg-[#f4ebdd]">
-                Continue with Google
-              </button>
-              <button className="rounded-full border border-[#dfcfbb] bg-[#fffaf1] px-4 py-3 text-sm font-medium text-[#4f473d] transition hover:bg-[#f4ebdd]">
-                Continue with GitHub
-              </button>
             </div>
 
-            <p className="mt-8 text-sm text-[#6a6055]">
-              New to MarketMind AI?{" "}
-              <Link to="/register" className="font-semibold text-[#249a52] transition hover:text-[#1f201d]">
-                Create an account
-              </Link>
-            </p>
-          </div>
-        </section>
+            <Button type="submit" className="w-full" size="lg" disabled={loading}>
+              {loading ? "Signing in..." : "Sign in to workspace"}
+              {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
+            </Button>
+          </form>
+
+          <p className="mt-8 text-center text-sm text-[#6a6055]">
+            Don't have an account?{" "}
+            <Link to="/register" className="font-semibold text-[#1f201d] transition hover:text-[#249a52]">
+              Start planning
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

@@ -1,41 +1,46 @@
 "use client"
 
-import { Link } from "react-router-dom"
+import { useState } from "react"
+import { useProjects } from "../hooks/useProjects"
 import Card from "../components/UI/Card"
 import Button from "../components/UI/Button"
 import Input from "../components/UI/Input"
 import LoadingSpinner from "../components/UI/LoadingSpinner"
 import { useToast } from "../contexts/ToastContext"
-import { deleteChatbot, generateDeploymentKey, useChatbots } from "../hooks/useChatbot"
 
 function Dashboard() {
-  const { filteredChatbots, loading, error, search, setSearch, refresh } = useChatbots()
+  const { projects, loading, error, createProject, deleteProject, fetchProjects } = useProjects()
   const { addToast } = useToast()
+  const [isCreating, setIsCreating] = useState(false)
+  
+  const [newProject, setNewProject] = useState({
+    name: "",
+    description: "",
+    targetAudience: "",
+    competitors: "",
+    coreFeatures: ""
+  })
 
-  const stats = {
-    total: filteredChatbots.length,
-    active: filteredChatbots.filter((bot) => bot.status === "active").length,
-    draft: filteredChatbots.filter((bot) => bot.status === "draft").length,
-    integrations: filteredChatbots.reduce((sum, bot) => sum + (bot.integrations?.length || 0), 0),
-    leadBots: filteredChatbots.filter((bot) => bot.automation?.leadCaptureEnabled).length,
-  }
-
-  const handleDelete = async (chatbotId) => {
+  const handleCreate = async (e) => {
+    e.preventDefault()
     try {
-      await deleteChatbot(chatbotId)
-      addToast("Chatbot deleted", "success")
-      refresh()
+      await createProject({
+        ...newProject,
+        competitors: newProject.competitors.split(",").map(s => s.trim()).filter(Boolean),
+        coreFeatures: newProject.coreFeatures.split(",").map(s => s.trim()).filter(Boolean)
+      })
+      addToast("Project created successfully", "success")
+      setIsCreating(false)
+      setNewProject({ name: "", description: "", targetAudience: "", competitors: "", coreFeatures: "" })
     } catch (err) {
       addToast(err.message, "error")
     }
   }
 
-  const handleKey = async (chatbotId) => {
+  const handleDelete = async (projectId) => {
     try {
-      const key = await generateDeploymentKey(chatbotId)
-      await navigator.clipboard.writeText(key)
-      addToast("Deployment key generated and copied", "success")
-      refresh()
+      await deleteProject(projectId)
+      addToast("Project deleted", "success")
     } catch (err) {
       addToast(err.message, "error")
     }
@@ -46,7 +51,7 @@ function Dashboard() {
       <div className="flex h-[60vh] items-center justify-center">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-[#6a6055]">Loading chatbot workspace...</p>
+          <p className="mt-4 text-[#6a6055]">Loading workspace...</p>
         </div>
       </div>
     )
@@ -57,34 +62,27 @@ function Dashboard() {
       <section className="overflow-hidden rounded-[2.5rem] border border-[#eadbc7] bg-[linear-gradient(135deg,_rgba(255,251,245,0.95)_0%,_rgba(247,236,217,0.92)_55%,_rgba(223,245,227,0.85)_120%)] p-8 text-[#1f201d] shadow-[0_28px_70px_rgba(77,56,24,0.08)]">
         <div className="grid gap-8 lg:grid-cols-[1.35fr_0.95fr]">
           <div>
-            <p className="editorial-eyebrow text-xs font-semibold uppercase">Business AI workspace</p>
+            <p className="editorial-eyebrow text-xs font-semibold uppercase">Strategic Co-Founder Suite</p>
             <h1 className="editorial-title mt-4 max-w-2xl text-4xl font-semibold leading-tight">
-              Launch business-ready chatbots that qualify leads, handle support, and escalate to your team.
+              Validate ideas, build launch plans, and refine your pitch before writing code.
             </h1>
             <p className="mt-4 max-w-xl text-sm leading-7 text-[#5f564b]">
-              Configure company context, products, CTAs, support channels, and integrations so each assistant can help customers,
-              capture intent, and drive real business outcomes.
+              Define your startup idea and let the AI generate a 100-day execution plan, deep competitor analysis, and organic growth strategies.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/chatbots/new">
-                <Button size="lg">Create business bot</Button>
-              </Link>
-              <Link to="/agents">
-                <Button variant="secondary" size="lg">Open agent hub</Button>
-              </Link>
-              <Button variant="secondary" size="lg" onClick={refresh}>
-                Refresh workspace
+              <Button size="lg" onClick={() => setIsCreating(!isCreating)}>
+                {isCreating ? "Cancel" : "New Startup Idea"}
+              </Button>
+              <Button variant="secondary" size="lg" onClick={fetchProjects}>
+                Refresh
               </Button>
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             {[
-              { label: "Chatbots", value: stats.total },
-              { label: "Active", value: stats.active },
-              { label: "Draft", value: stats.draft },
-              { label: "Integrations", value: stats.integrations },
-              { label: "Lead bots", value: stats.leadBots },
+              { label: "Active Projects", value: projects.length },
+              { label: "Strategy Engines", value: "5 Active" }
             ].map((item) => (
               <div key={item.label} className="rounded-[1.8rem] border border-[#eadbc7] bg-[#fffaf1] p-5">
                 <p className="text-sm text-[#7a6f61]">{item.label}</p>
@@ -95,109 +93,113 @@ function Dashboard() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-semibold text-[#1f201d]">Your chatbot fleet</h2>
-          <p className="mt-1 text-[#6a6055]">Search, edit, chat with, and inspect each assistant from one place.</p>
-        </div>
-        <div className="w-full md:max-w-sm">
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by chatbot name, industry, or status"
-          />
-        </div>
-      </section>
-
       {error ? (
         <Card hover={false} className="border-red-100 bg-red-50 text-red-700">
           {error}
         </Card>
       ) : null}
 
-      {filteredChatbots.length === 0 ? (
+      {isCreating && (
+        <Card hover={false} className="rounded-[1.9rem] bg-[rgba(255,251,245,0.88)]">
+          <h2 className="text-2xl font-semibold text-[#1f201d] mb-4">Define Your Startup Idea</h2>
+          <form onSubmit={handleCreate} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[#544b40] mb-1">Project Name</label>
+              <Input
+                required
+                value={newProject.name}
+                onChange={e => setNewProject({...newProject, name: e.target.value})}
+                placeholder="e.g., AutoDev AI"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#544b40] mb-1">Core Description</label>
+              <Input
+                required
+                value={newProject.description}
+                onChange={e => setNewProject({...newProject, description: e.target.value})}
+                placeholder="A brief summary of the problem it solves."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#544b40] mb-1">Target Audience</label>
+              <Input
+                value={newProject.targetAudience}
+                onChange={e => setNewProject({...newProject, targetAudience: e.target.value})}
+                placeholder="e.g., Software Engineers, Content Creators"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#544b40] mb-1">Competitors (comma separated)</label>
+              <Input
+                value={newProject.competitors}
+                onChange={e => setNewProject({...newProject, competitors: e.target.value})}
+                placeholder="e.g., GitHub Copilot, Cursor"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#544b40] mb-1">Core Features (comma separated)</label>
+              <Input
+                value={newProject.coreFeatures}
+                onChange={e => setNewProject({...newProject, coreFeatures: e.target.value})}
+                placeholder="e.g., Automated PR Reviews, Inline Suggestions"
+              />
+            </div>
+            <div className="pt-2">
+              <Button type="submit">Create Project</Button>
+            </div>
+          </form>
+        </Card>
+      )}
+
+      {projects.length === 0 && !isCreating ? (
         <Card hover={false} className="rounded-[2rem] border-dashed border-[#d8c5af] bg-[rgba(255,251,245,0.86)] py-16 text-center">
-          <p className="text-lg font-semibold text-[#1f201d]">No chatbots yet</p>
-          <p className="mt-2 text-[#6a6055]">Create your first business assistant and start testing lead capture and support flows.</p>
-          <Link to="/chatbots/new" className="mt-6 inline-flex">
-            <Button>Create first chatbot</Button>
-          </Link>
+          <p className="text-lg font-semibold text-[#1f201d]">No projects yet</p>
+          <p className="mt-2 text-[#6a6055]">Define your first startup idea to unlock the strategy engines.</p>
+          <div className="mt-6 inline-flex">
+            <Button onClick={() => setIsCreating(true)}>Create new project</Button>
+          </div>
         </Card>
       ) : (
         <div className="grid gap-5 xl:grid-cols-2">
-          {filteredChatbots.map((chatbot) => (
-            <Card key={chatbot._id} hover={false} className="rounded-[1.9rem] bg-[rgba(255,251,245,0.88)]">
+          {projects.map((project) => (
+            <Card key={project._id} hover={false} className="rounded-[1.9rem] bg-[rgba(255,251,245,0.88)]">
               <div className="flex flex-col gap-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <div className="flex items-center gap-3">
-                      <h3 className="text-xl font-semibold text-[#1f201d]">{chatbot.name}</h3>
-                      <span className="rounded-full bg-[#f3e7d4] px-3 py-1 text-xs font-semibold uppercase tracking-wide text-[#6a6055]">
-                        {chatbot.status}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm text-[#6a6055]">
-                      {chatbot.description || "No description yet. Add one in the builder to explain this assistant's role."}
-                    </p>
-                    {chatbot.businessProfile?.industry || chatbot.businessProfile?.targetAudience ? (
+                    <h3 className="text-xl font-semibold text-[#1f201d]">{project.name}</h3>
+                    <p className="mt-2 text-sm text-[#6a6055]">{project.description}</p>
+                    {project.targetAudience && (
                       <p className="mt-2 text-xs font-medium uppercase tracking-[0.18em] text-[#249a52]">
-                        {[chatbot.businessProfile?.industry, chatbot.businessProfile?.targetAudience].filter(Boolean).join(" • ")}
+                        {project.targetAudience}
                       </p>
-                    ) : null}
-                  </div>
-                  <div className="rounded-full bg-[#eef9ef] px-3 py-2 text-xs font-semibold text-[#249a52]">
-                    {(chatbot.integrations?.length || 0)} integrations
+                    )}
                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-4">
-                  <div className="rounded-[1.6rem] bg-[#fffaf1] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#958675]">Model</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1f201d]">{chatbot.config?.model || "Default"}</p>
+                {(project.competitors?.length > 0 || project.coreFeatures?.length > 0) && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {project.competitors?.length > 0 && (
+                      <div className="rounded-[1.6rem] bg-[#fffaf1] p-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-[#958675]">Competitors</p>
+                        <p className="mt-2 text-sm font-semibold text-[#1f201d]">{project.competitors.join(", ")}</p>
+                      </div>
+                    )}
+                    {project.coreFeatures?.length > 0 && (
+                      <div className="rounded-[1.6rem] bg-[#fffaf1] p-4">
+                        <p className="text-xs uppercase tracking-[0.2em] text-[#958675]">Key Features</p>
+                        <p className="mt-2 text-sm font-semibold text-[#1f201d]">{project.coreFeatures.join(", ")}</p>
+                      </div>
+                    )}
                   </div>
-                  <div className="rounded-[1.6rem] bg-[#fffaf1] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#958675]">Temperature</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1f201d]">{chatbot.config?.temperature ?? 0.7}</p>
-                  </div>
-                  <div className="rounded-[1.6rem] bg-[#fffaf1] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#958675]">Tokens</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1f201d]">{chatbot.config?.maxTokens ?? 1024}</p>
-                  </div>
-                  <div className="rounded-[1.6rem] bg-[#fffaf1] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#958675]">Lead capture</p>
-                    <p className="mt-2 text-sm font-semibold text-[#1f201d]">{chatbot.automation?.leadCaptureEnabled ? "On" : "Off"}</p>
-                  </div>
-                </div>
+                )}
 
-                {(chatbot.businessProfile?.goals?.length || chatbot.automation?.primaryCallToAction) ? (
-                  <div className="rounded-[1.6rem] bg-[#eef9ef] p-4">
-                    <p className="text-xs uppercase tracking-[0.2em] text-[#249a52]">Business focus</p>
-                    <p className="mt-2 text-sm text-[#4f473d]">
-                      {chatbot.businessProfile?.goals?.length ? `Goals: ${chatbot.businessProfile.goals.join(", ")}. ` : ""}
-                      {chatbot.automation?.primaryCallToAction ? `Primary CTA: ${chatbot.automation.primaryCallToAction}.` : ""}
-                    </p>
-                  </div>
-                ) : null}
-
-                <div className="flex flex-wrap gap-3">
-                  <Link to={`/chatbots/${chatbot._id}/chat`}>
-                    <Button>Open chat</Button>
-                  </Link>
-                  <Link to={`/agents?agent=sales_recommendation&chatbotId=${chatbot._id}`}>
-                    <Button variant="secondary">Sales agent</Button>
-                  </Link>
-                  <Link to={`/chatbots/${chatbot._id}/edit`}>
-                    <Button variant="outline">Edit builder</Button>
-                  </Link>
-                  <Link to={`/chatbots/${chatbot._id}/analytics`}>
-                    <Button variant="secondary">View analytics</Button>
-                  </Link>
-                  <Button variant="ghost" onClick={() => handleKey(chatbot._id)}>
-                    Copy deployment key
-                  </Button>
-                  <Button variant="danger" onClick={() => handleDelete(chatbot._id)}>
-                    Delete
-                  </Button>
+                <div className="flex flex-wrap gap-3 mt-2 border-t border-[#eadbc7] pt-4">
+                  {/* Phase 5 modules would be linked here */}
+                  <Button variant="secondary" onClick={() => alert("Generate Market Validation (Coming soon)")}>Market Validation</Button>
+                  <Button variant="secondary" onClick={() => alert("Generate Launch Plan (Coming soon)")}>Launch Plan</Button>
+                  <Button variant="secondary" onClick={() => alert("Pitch Simulator (Coming soon)")}>Pitch Simulator</Button>
+                  <Button variant="danger" onClick={() => handleDelete(project._id)}>Delete</Button>
                 </div>
               </div>
             </Card>
