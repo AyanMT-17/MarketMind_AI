@@ -42,17 +42,25 @@ export function AuthProvider({ children }) {
   const apiBaseUrl = getApiBaseUrl()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState(null)
+  const [token, setToken] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Check if user is logged in from localStorage
-    const token = localStorage.getItem("authToken")
-    const userData = localStorage.getItem("userData")
+    const savedToken = localStorage.getItem("authToken")
+    const savedUserData = localStorage.getItem("userData")
 
-    if (token && userData) {
-      const normalizedUser = normalizeUser(JSON.parse(userData))
-      setIsAuthenticated(true)
-      setUser(normalizedUser)
+    if (savedToken && savedUserData) {
+      try {
+        const normalizedUser = normalizeUser(JSON.parse(savedUserData))
+        setIsAuthenticated(true)
+        setUser(normalizedUser)
+        setToken(savedToken)
+      } catch (e) {
+        console.error("Error parsing saved user data", e)
+        localStorage.removeItem("authToken")
+        localStorage.removeItem("userData")
+      }
     }
     setLoading(false)
   }, [])
@@ -63,93 +71,71 @@ export function AuthProvider({ children }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      }, 2) // Max 2 attempts with backoff
+      }, 2)
 
       const rawText = await response.text();
       let data;
       try {
         data = JSON.parse(rawText);
       } catch {
-        data = { message: 'Failed to parse JSON response' };
+        throw new Error('Failed to parse JSON response');
       }
 
       if (!response.ok) {
-        // Handle 429 specially - tell user to wait
         if (response.status === 429) {
-          const errorMessage = "Too many login attempts. Please wait 5-10 minutes before trying again.";
-          console.error("Login Rate Limited:", errorMessage);
-          return { success: false, error: errorMessage };
+          throw new Error("Too many login attempts. Please wait 5-10 minutes before trying again.");
         }
-        
-        const errorMessage = data.message || "Login failed";
-        console.error("Login Error from API:", errorMessage);
-        return { success: false, error: errorMessage };
+        throw new Error(data.message || "Login failed");
       }
-
-      console.log("Login response:", data)
 
       localStorage.setItem("authToken", data.token)
       const normalizedUser = normalizeUser(data.user)
       localStorage.setItem("userData", JSON.stringify(normalizedUser))
+      
       setIsAuthenticated(true)
       setUser(normalizedUser)
-
-      return { success: true, message: "Login successful" }
-    } catch (error) {
-      console.error("Login Exception:", error);
-      return { success: false, error: "An error occurred during login" }
-    }
-  }
-
-  const register = async (firstName, lastName, email, password, company) => {
-    try {
-      // API call to backend register endpoint
-      const response = await fetch(`${apiBaseUrl}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ firstName, lastName, email, password, company }),
-      })
-
-      const rawText = await response.text();
-      console.log('Raw API Response from backend:', rawText);
-      let errorData;
-      try {
-        errorData = JSON.parse(rawText);
-      } catch {
-        errorData = { message: 'Failed to parse JSON response' };
-      }
-
-      if (!response.ok) {
-        const errorMessage = errorData.message || (errorData.errors ? errorData.errors.join(", ") : "Registration failed");
-        console.error("Registration Error from API:", errorMessage);
-        return { success: false, error: errorMessage }
-      }
-
-      const data = errorData;
-
-      const userData = normalizeUser({
-        id: data.user._id || 1,
-        firstName: data.user.profile.firstName || firstName,
-        lastName: data.user.profile.lastName || lastName,
-        email: data.user.email || email,
-        company: data.user.profile.company || company,
-        profile: {
-          firstName: data.user.profile.firstName || firstName,
-          lastName: data.user.profile.lastName || lastName,
-          company: data.user.profile.company || company,
-        },
-      })
-
-      localStorage.setItem("authToken", data.token)
-      localStorage.setItem("userData", JSON.stringify(userData))
-
-      setIsAuthenticated(true)
-      setUser(userData)
+      setToken(data.token)
 
       return { success: true }
     } catch (error) {
-      console.error("Registration Exception:", error);
-      return { success: false, error: "Registration failed" }
+      console.error("Login Error:", error);
+      throw error;
+    }
+  }
+
+  const register = async (userData) => {
+    try {
+      const response = await fetch(`${apiBaseUrl}/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      })
+
+      const rawText = await response.text();
+      let data;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        throw new Error('Failed to parse JSON response');
+      }
+
+      if (!response.ok) {
+        const errorMessage = data.message || (data.errors ? data.errors.join(", ") : "Registration failed");
+        throw new Error(errorMessage);
+      }
+
+      localStorage.setItem("authToken", data.token)
+      const normalizedUser = normalizeUser(data.user)
+      localStorage.setItem("userData", JSON.stringify(normalizedUser))
+
+      setIsAuthenticated(true)
+      setUser(normalizedUser)
+      setToken(data.token)
+
+      return { success: true }
+    } catch (error) {
+      console.error("Registration Error:", error);
+      throw error;
     }
   }
 
@@ -158,11 +144,13 @@ export function AuthProvider({ children }) {
     localStorage.removeItem("userData")
     setIsAuthenticated(false)
     setUser(null)
+    setToken(null)
   }
 
   const value = {
     isAuthenticated,
     user,
+    token,
     login,
     register,
     logout,
